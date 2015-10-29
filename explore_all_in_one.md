@@ -1384,15 +1384,17 @@ _ = map(iter_print, iter_value_of_key_through_d_l_d_d(new3000_base_d, 'usages', 
     cn_f: u'\uff1a' cn_h: u'\uff1a'
     en_f: u'\uff1a' en_h: u':'
     Some examples of the raw string of the explanation field
-     *vt.* 编织（纱线）：to form by **interlacing yarn** or thread in a series of connected loops **with needles**
-     *adj.* 不招摇的，低调的：**not** excessively **showy**
-     *adj.* 重要的，转折点的：of, relating to, or being a **major turning** point
-     *vt.* 巧妙地操纵：to **guide with adroitness and design** or to bring about or secure as a result of skillful management
-     *vt.* 称赞；颂扬：to **speak** or write **in high praise of**
-     *adj.* 装饰华丽的，过分雕琢的，复杂的：characterized by **extravagance**, **complexity**, or **flamboyance**
-     *vt.* 安全度过（危机等），经受住：to **come through**（something）safely
-     *adj.* 气候温和的：marked by temperatures that are **neither** too **high** nor too **low**
-     *adj.* 顺从的：easily imposed on; **submissive**
+     *adj.* 昏暗的；肮脏的：**darkened** with smoke and grime; **dirty** or discolored
+     *v.* 系紧，扎紧：to gather **into a tight mass** by means of a line or cord
+     *adj.* 谦逊的：marked by **meekness** or **modesty** in behavior, attitude, or spirit; not arrogant or prideful
+     *vt.* 尊敬，把…视为神圣：to **respect** or honor greatly; revere
+     *v.* 堵塞：to **prevent** passage **through** by **filling with something**
+     *adj.* 下意识的，潜在意识的：**below** the threshold of conscious **perception**
+     *n.* 起始，开始：the point at which something **begins**
+     *adj.* 含糊不清的：of or relating to deliberate **obscurity**（as of literary or conversational style）
+     *vt.* 假装，模仿：to have or **take on the appearance**, form, or sound of: imitate
+     *vi.* 畏缩；退缩：to **draw back** in fear, pain, or disgust
+     *adj.* 酷热的：**intensely hot**
     
 
 
@@ -1537,12 +1539,12 @@ _ = map(pprint, iter_through_and_sample_k(new3000_base_d, 5, [('all','',True), (
                                                               ('key', 'en', False)]))
 ```
 
-    [u'gall', u'a deep-seated **ill will**']
-    [u'mute', u'to **soften** the tone, color, shade, or hue of']
-    [u'agreeable',
-     u"**pleasing to the mind or senses** especially as according well with one's tastes or needs"]
-    [u'balm', u'a sweet or **pleasant smell**']
-    [u'mentor', u'a trusted counselor or **guide**']
+    [u'salubrious', u'favorable to or **promoting health** or well-being']
+    [u'nettle', u'to **arouse** to sharp but transitory annoyance or **anger**']
+    [u'partial', u'inclined to favor one party more than the other:**biased**']
+    [u'annex',
+     u'to **join**(something)to a mass, quantity, or number so as to bring about an overall increase']
+    [u'confine', u'to keep within **limits**']
     
 
 ## 处理例句
@@ -1570,16 +1572,16 @@ _ = map(functools.partial(iter_print, print_list_index=False),
 del path_to_example
 ```
 
-       absolute
-       例　absolute proof 确凿的证据
-       subterfuge
-       例　The spy obtained the documents by subterfuge. 间谍通过狡猾的计谋获得了文件。
-       cogent
-       例　a cogent analysis 一项相关的研究
-       knead
-       例　knead dough 揉面团‖knead a painful calf muscle 给疼痛的小腿肌肉按摩
-       dissension
-       例　Although we have dissension, we are friend all the same. 虽然我们意见不合，但我们还是朋友。‖There is a continued dissension among historians on the exact spot of Columbus's first landing. 对于哥伦布第一次的准确登陆地点这个问题，历史学家们总是存在分歧。
+       scurvy
+       例　She was beset by a whole scurvy swarm of con artists. 她被一群下流的骗子艺术家蜂拥围攻。
+       outmaneuver
+       例　He outmaneuvered his congressional opponent. 他以计谋战胜了国会的对手。
+       speculate
+       例　I speculate that someone has been using this cabin as a trysting place. 我猜测有情侣把这个小屋当做他们幽会的地方。
+       preeminent
+       例　The writer's style is brilliant and his command of words, preeminent. 作者的文风和用词都十分出色。
+       reprobate
+       例　The program rehabilitates reprobates and turns them into hard-working, law-abiding citizens. 这个项目让那些堕落的人改过自新，并将他们变成勤劳守法的好公民。
     
 
 ### 判断缺少分隔符的情形
@@ -1671,46 +1673,6 @@ del all_that_without_splt_symbol
     　The mixed smell of sawdust and glue pervaded the whole factory. 锯末与胶水的味道弥漫了整个工厂。the corruption that pervades every stratum of society 充斥在社会每个阶层中的腐败
     ***********
      大火过后整个房子只剩下被烧焦的骨架了。
-     在报告发表之前，我们看到了他的整体框架。
-    　Only the charred skeleton of the house remained after the fire. 大火过后整个房子只剩下被烧焦的骨架了。We saw a skeleton of the report before it was published. 在报告发表之前，我们看到了他的整体框架。
-    ***********
-     在豪华游轮上享受着无忧旅途的乘客
-     春假期间无忧无虑的大学生
-    　passengers on a luxury cruise ship enjoying a carefree vacation 在豪华游轮上享受着无忧旅途的乘客carefree college students on spring break 春假期间无忧无虑的大学生
-    ***********
-     那个纨绔子弟愿意花数千美元，只为他的女朋友买
-     Birkin的包包。
-    　That dandy was willing to spend thousands of dollars just to get the Hermes Birkin for his girlfriend. 那个纨绔子弟愿意花数千美元，只为他的女朋友买Hermes Birkin的包包。
-    ***********
-     就品位而言，艺术赞助人和收藏家
-     Guggenheim是一个狂热者：她总是倾向于最新奇、最让人满意和最独特的佳品。
-    　In matters of taste, the art patron and collector Peggy Guggenheim was a zealot: she was for the strangest, the most surprising, the most satisfying, the best, the unique. 就品位而言，艺术赞助人和收藏家Peggy Guggenheim是一个狂热者：她总是倾向于最新奇、最让人满意和最独特的佳品。
-    ***********
-     他总是三个小孩里最不听话的一个。
-     过去行为上有些问题的调皮小孩
-    　He had always been the most wayward of their three children. 他总是三个小孩里最不听话的一个。wayward children with a history of behavioral problems 过去行为上有些问题的调皮小孩
-    ***********
-     你介意晚饭时放一些令人愉快的音乐吗？
-     因为感慨自然之美稍纵即逝而产生的令人愉悦的忧伤
-    　Would you mind putting on some agreeable music for dinner? 你介意晚饭时放一些令人愉快的音乐吗？the agreeable melancholy resulting from a sense of the transitoriness of natural beauty 因为感慨自然之美稍纵即逝而产生的令人愉悦的忧伤
-    ***********
-     学生们为他们在世界中的角色感到迷茫。
-     instructions因为不明确的指示而受挫
-    　Students have ambiguous feelings about their role in the world. 学生们为他们在世界中的角色感到迷茫。frustrated by ambiguous instructions因为不明确的指示而受挫
-    ***********
-     理清思路;
-     澄清某一问题
-     clarify his mind 理清思路;clarify a subject 澄清某一问题
-    ***********
-     确保你在面试时的回答简短而恰当。
-     你需要携带所有的相关证明。
-    　Make sure your answers during the interview are short and relevant. 确保你在面试时的回答简短而恰当。You need to bring all the relevant certificates with you. 你需要携带所有的相关证明。
-    ***********
-     我不觉得他们做了室友之后能和谐相处。
-     一个与对远古人类的已有知识不存在矛盾的理论
-    　I don't think that they could be compatible as roommates. 我不觉得他们做了室友之后能和谐相处。a theory that is compatible with what we already know about early man 一个与对远古人类的已有知识不存在矛盾的理论
-    ***********
-    
 
 【勘误】对于没有分隔符但却出现多段中文字符的句子  
 * 匹配一个中文句号或中文问号，再加一个英文字符，在中文符号后加分隔符
@@ -1732,9 +1694,6 @@ print test_str[:cn_pun_index] + u'\u2016' + test_str[cn_pun_index:]
 del test_str, cn_pun_index
 ```
 
-    I don't think that they could be compatible as roommates. 我不觉得他们做了室友之后能和谐相处。‖a theory that is compatible with what we already know about early man 一个与对远古人类的已有知识不存在矛盾的理论
-    
-
 
 ```python
 %%sync_to_file $configNew3000BeforeMain
@@ -1749,9 +1708,6 @@ cn_char_index = match_cn_char_with_en_char_fun(test_str).end()
 print test_str[:cn_char_index] + u'\u2016' + test_str[cn_char_index:]
 del test_str, cn_char_index
 ```
-
-    passengers on a luxury cruise ship enjoying a carefree vacation 在豪华游轮上享受着无忧旅途的乘客‖carefree college students on spring break 春假期间无忧无虑的大学生
-    
 
 
 ```python
@@ -1798,16 +1754,6 @@ unit_test()
 del unit_test
 ```
 
-     那个纨绔子弟愿意花数千美元，只为他的女朋友买
-     Birkin的包包。
-     That dandy was willing to spend thousands of dollars just to get the Hermes Birkin for his girlfriend. 那个纨绔子弟愿意花数千美元，只为他的女朋友买Hermes Birkin的包包。
-    ***********
-     就品位而言，艺术赞助人和收藏家
-     Guggenheim是一个狂热者：她总是倾向于最新奇、最让人满意和最独特的佳品。
-     In matters of taste, the art patron and collector Peggy Guggenheim was a zealot: she was for the strangest, the most surprising, the most satisfying, the best, the unique. 就品位而言，艺术赞助人和收藏家Peggy Guggenheim是一个狂热者：她总是倾向于最新奇、最让人满意和最独特的佳品。
-    ***********
-    
-
 至此，多个例句应该都有分隔符间隔了。
 
 ### 拆分中英文
@@ -1827,9 +1773,6 @@ test_str = u'     　add spices to the stew with complete abandon 肆无忌惮�
 print match_sentence_en_part_re.match(test_str).group()
 del test_str
 ```
-
-         　add spices to the stew with complete abandon 
-    
 
 上面的匹配规则，可能导致中文部分的内容也被匹配。比如  
 `A GPA of 1.0 flusters him. 1.0的绩点让他很慌乱。`会被匹配为`A GPA of 1.0 flusters him. 1.0`  
@@ -1921,34 +1864,6 @@ del path_to_example_d
 iter_print(new3000_base_d['abandon']['usages'][0])
 ```
 
-     exp_d
-       en
-         carefree, freedom from **constraint**
-       cn
-         放纵
-       en_cn
-         放纵：carefree, freedom from **constraint**
-     pspeech
-       n.
-     ph_symbl
-       [ə'bændən]
-     examples_d
-       en
-         add spices to the stew with complete abandon
-       cn
-         肆无忌惮地向炖菜里面加调料
-       en_cn
-         add spices to the stew with complete abandon 肆无忌惮地向炖菜里面加调料
-     der
-     ants
-     examples
-       例 add spices to the stew with complete abandon 肆无忌惮地向炖菜里面加调料
-     exp
-       *n.* 放纵：carefree, freedom from **constraint**
-     syns
-       近　unconstraint, uninhibitedness, unrestraint
-    
-
 ## 处理反义词
 
 ### 示例
@@ -1978,13 +1893,6 @@ test_str = u'unthreatening 没有威胁的；reassuring 令人安心的'
 print test_str
 iter_print(match_ants_en_part_re.findall(test_str))
 ```
-
-    unthreatening 没有威胁的；reassuring 令人安心的
-     0
-       unthreatening 
-     1
-       reassuring 
-    
 
 
 ```python
@@ -2090,9 +1998,6 @@ if __name__ == '__main__':
     main()
 ```
 
-    Appending to convert_new3000.py
-    
-
 ## 最终结果
 
 
@@ -2102,98 +2007,6 @@ if __name__ == '__main__':
 iter_print(new3000_base_d['salutary'])
 #iter_print(new3000_base_d['fawn'])
 ```
-
-     usages
-       0
-         exp_d
-           en
-             beneficial, **promoting health**
-           cn
-             有益健康的
-           en_cn
-             有益健康的：beneficial, **promoting health**
-         ants_d
-           en
-             debilitating, deleterious, noxious, virulent 
-           cn
-             有害的，有毒的
-           en_cn
-             debilitating, deleterious, noxious, virulent 有害的，有毒的
-         pspeech
-           adj.
-         ph_symbl
-           ['sæljəteri]
-         examples_d
-           en
-             salutary exercise
-           cn
-             有益健康的锻炼
-           en_cn
-             salutary exercise 有益健康的锻炼
-         der
-         ants
-           反　debilitating, deleterious, noxious, virulent 有害的，有毒的
-         examples
-           例 salutary exercise 有益健康的锻炼
-         exp
-           *adj.* 有益健康的：beneficial, **promoting health**
-         syns
-           good, healthy, restorative, salubrious, tonic, wholesome
-       1
-         exp_d
-           en
-             **promoting** or contributing to personal or social **well-being**
-           cn
-             有利的,利好的
-           en_cn
-             有利的，利好的：**promoting** or contributing to personal or social **well-being**
-         ants_d
-           en
-             bad, disadvantageous, unfavorable, unfriendly, unhelpful, unprofitable 
-           cn
-             不利的
-           en_cn
-             bad, disadvantageous, unfavorable, unfriendly, unhelpful, unprofitable 不利的
-         pspeech
-           adj.
-         ph_symbl
-           ['sæljəteri]
-         examples_d
-           en
-             The low interest rates should have a salutary effect on business.
-             a salutary warning
-           cn
-             低利率对于商业而言应该是有利的。
-             善意的警告
-           en_cn
-             The low interest rates should have a salutary effect on business. 低利率对于商业而言应该是有利的。
-             a salutary warning 善意的警告
-         der
-         ants
-           反　bad, disadvantageous, unfavorable, unfriendly, unhelpful, unprofitable 不利的
-         examples
-           例 The low interest rates should have a salutary effect on business. 低利率对于商业而言应该是有利的。‖a salutary warning 善意的警告
-         exp
-           *adj.* 有利的，利好的：**promoting** or contributing to personal or social **well-being**
-         syns
-           advantageous, benefic, beneficent, benignant, favorable, friendly, helpful, kindly, profitable
-     word_block_str
-       【考法1】*adj.* 有益健康的：beneficial, **promoting health**
-       例　salutary exercise 有益健康的锻炼
-       近　good, healthy, restorative, salubrious, tonic, wholesome
-       反　debilitating, deleterious, noxious, virulent 有害的，有毒的
-       【考法2】*adj.* 有利的，利好的：**promoting** or contributing to personal or social **well-being**
-       例　The low interest rates should have a salutary effect on business. 低利率对于商业而言应该是有利的。a salutary warning 善意的警告
-       近　advantageous, benefic, beneficent, benignant, favorable, friendly, helpful, kindly, profitable
-       反　bad, disadvantageous, unfavorable, unfriendly, unhelpful, unprofitable 不利的
-     pos
-       0
-         22
-       1
-         4
-     phon
-       ['sæljəteri]
-    
 
 # 处理《GRE核心词汇助记与精练》
 
@@ -2290,9 +2103,6 @@ print 'Should have 39 Lists. Extract', len(zhuji_base_list_l)
 #print zhuji_base_list_l[38]
 ```
 
-    Should have 39 Lists. Extract 39
-    
-
 ## 提取etyma_block
 
 + 先把list_block 按照 “小结&复习” 拆分成两部分，然后只处理第一部分
@@ -2366,9 +2176,6 @@ zhuji_base_d_l_l = get_etyma_block_d_l_l(zhuji_base_list_l)
 print 'In total', len(zhuji_base_d_l_l), 'lists'
 ```
 
-    In total 39 lists
-    
-
 
 ```python
 %%sync_to_file $configZhujiBeforeMain
@@ -2393,23 +2200,6 @@ revise_miss_etyma(zhuji_base_d_l_l)
 iter_print(zhuji_base_d_l_l[24][2])
 ```
 
-     ety
-       tum
-     summary
-       contumacious形容 [-acious] “像 (肿瘤 [tumor] 一样) 完全 [con-] 凸起 [tum]”, 比喻不服从的，倔强的 (肿瘤不服从正常的细胞分化规律, 不易根治)。tumult指社会“肿胀 [tum] 起来, 一些人煽动、使动荡”, 即骚乱，暴动 (像肿瘤一样不断膨胀，对人、社会危害极大)。
-     pos
-       0
-         25
-       1
-         3
-     ety_block_str
-       词根tum表示swell [肿胀] , 构成单词tumor [n. 肿瘤]。
-       contumacious [ˌkɑ:ntju'meɪʃəs]
-       [根] con- [加强语气] + tum [swell] + -acious [a.], swell completely, 像肿瘤一样肿胀、凸起 → a. 不服从的，倔强的
-       tumult ['tjuːmʌlt]
-       [根] tum [swell] + -ult [n.], swell [肿胀], 不平静 → n. 骚动，暴动
-    
-
 ## 处理ety_block_str
 
 * 之前提取的ety_block_str里包含了对词根组的解释（etyma_group_explanation），以及所有的同根词（cognate_block）。
@@ -2426,21 +2216,6 @@ match_cognate_block_start_re = re.compile(ur'^([a-zéï-]+)(.*?)(\[.*\])$', re.M
 # example
 iter_print(extract_content_between(zhuji_base_d_l_l[1-1][6-1]['ety_block_str'], match_cognate_block_start_re, True))
 ```
-
-     0
-       verb作为单词是“动词”的意思，作为词根指一般的单词，即word。
-     1
-       verbatim [vɜːr'beɪtɪm]
-       [根] verb [word] + a + tim (e), (a) word a time → ad.逐字地 (抄写) → 一字不差地
-     2
-       verbose [vɜːr'boʊs]
-       [根] verb [word] + -ose [a., full of], full of words → a.冗长的，嗦的
-       [注] 同义词wordy [a. 冗长的，嗦的]
-     3
-       reverberate [rɪ'vɜːrbəreɪt]
-       [根] re- [back] + verb [word, sound] + er + -ate [v.],sound back → vi. 回荡，回响
-       [注] 也可以参考vibrate [v. 震动] ，将reverberate理解成 (声波的) 回震，即回荡、回响
-    
 
 
 ```python
@@ -2581,14 +2356,6 @@ def process_all_cognate_block(base_data_d_l_l):
 zhuji_base_word_d = process_all_cognate_block(zhuji_base_d_l_l)
 ```
 
-    Warning! word already exists! scruple
-    Warning! word already exists! scrupulous
-    Warning! word already exists! scrutable
-    Warning! word already exists! scrutinize
-    Warning! word already exists! noisome
-    Warning! word already exists! understate
-    
-
 ## 添加同根词列表
 
 依据cognate_block_str_l给每个单词添加同根词列表。只对有意义的词根添加。
@@ -2638,9 +2405,6 @@ if __name__ == '__main__':
     main()
 ```
 
-    Appending to convert_zhuji.py
-    
-
 ## 最终成果
 
 
@@ -2649,34 +2413,6 @@ if __name__ == '__main__':
 pprint(zhuji_base_word_d['pervade'])
 iter_print(zhuji_base_word_d['pervade'])
 ```
-
-    {'content': u'[\u6839] per- [through] + vad [go] + -e [v.], go through, \u904d\u5e03 \u2192 vt. \u5f25\u6f2b\uff0c\u5145\u6ee1\n',
-     'ety': 'vad, vag, ced',
-     'etyma_cognates_l': u'pervade, evasive, extravagant, vague, cessation, incessant',
-     'etyma_group_explanation': u'(1) \u8bcd\u6839vad\u548cvas\u8868\u793ago [\u8d70]\u3002invade [v. \u4fb5\u7565\uff0c\u540d\u8bcd\u5f62\u5f0finvasion] \u7684\u5b57\u9762\u4e49\u5c31\u662f\u201c\u8d70 [vad] \u5165 [in-] \u4ed6\u56fd\u9886\u571f\u201d\u3002\n(2) \u8bcd\u6839vag\u8868\u793awander\u3002\u53ef\u4ee5\u53c2\u8003wag [\u6447\u6446] \u4ee5\u53ca\u4e0a\u4e00\u6761\u8bcd\u6839vad/vas\u52a0\u6df1\u8bb0\u5fc6\u3002\n(3) \u8bcd\u6839ced\u548ccess\u9664\u4e86\u8868\u793ago [\u8d70] \u4e4b\u5916, \u5728\u5176\u6784\u6210\u7684\u5c11\u91cf\u5355\u8bcd\u4e2d\u8fd8\u8868\u793a\u201c\u8d70\u5f00\u201d\uff0c\u5373\u79bb\u5f00\uff0c\u5f15\u7533\u51fa\u505c\u6b62\u7684\u542b\u4e49\u3002',
-     'phon': u"[p\u0259r've\u026ad]",
-     'pos': u'6, 7',
-     'summary': u'\n\u8bcd\u6839vad\u8868\u793ago [\u8d70]\uff1ainvade [\u4fb5\u7565] \u662f\u6307\u201c (\u672a\u7ecf\u5141\u8bb8\u7684\u60c5\u51b5\u4e0b) \u8d70 [vad] \u8fdb [in-]\u201d\uff1bpervade\u6307\u201c\u8d70 [vad] \u904d [per-]\u201d, \u5f53\u6c14\u4f53\u6216\u6c1b\u56f4\u201c\u8d70\u904d\u201d\u7a7a\u95f4\u7684\u6bcf\u4e00\u4e2a\u89d2\u843d\uff0c\u5373\u5f25\u6f2b\uff0c\u5145\u6ee1\uff1bevasive\u5f62\u5bb9\u4e8b\u7269\u201c(\u4ece\u4eba\u4eec\u7684\u89c6\u7ebf\u3001\u638c\u5fc3\u4e2d) \u8d70 [vas] \u6389 [e-=ex-] \u7684 [-ive]\u201d, \u5373\u96be\u4ee5\u53d1\u73b0\u3001\u6355\u6349\u3001\u5206\u79bb\u7684\uff0c\u4e5f\u6307\u8bf4\u8bdd\u65f6\u201c\u56de\u907f [go [vas] away [e-]] \u7684 [-ive]\u201d, \u5373\u542b\u7cca\u5176\u8f9e\u7684\u3002vague\u5f62\u5bb9\u201c\u98d8\u5ffd\u4e0d\u5b9a [vag, wander] \u7684 [-ue]\u201d, \u5373\u542b\u4e49\u4e0a\u8868\u8fbe\u4e0d\u6e05\u7684\uff0c\u89c6\u89c9\u4e0a\u8f6e\u5ed3\u4e0d\u6e05\u6670\u7684\uff0c(\u53ef\u6982\u62ec\u6210\u201c\u6a21\u7cca\u7684\u201d); extravagant\u8868\u793a\u201c\u8fc7\u5ea6 [wander [vag] outside [extra-]] \u7684 [-ant] \u201d\uff0c\u4e5f\u7279\u6307\u201c\u82b1\u94b1\u8fc7\u5ea6\u7684\u201d, \u5373\u6325\u970d\u7684\u3002cessation [\u7ec8\u6b62\uff0c\u6682\u505c], \u6765\u81ea\u8bcd\u6839cess\u7531\u201c\u8d70\u5f00\u201d\u5f15\u7533\u51fa\u7684\u201c\u505c\u6b62\u201d; incessant\u8868\u793a\u201c\u4e0d [in-] \u505c\u6b62 [cess] \u7684 [-ant]\u201d, \u5373\u65e0\u95f4\u65ad\u7684\u3002\n',
-     'word': u'pervade'}
-     word
-       pervade
-     etyma_group_explanation
-       (1) 词根vad和vas表示go [走]。invade [v. 侵略，名词形式invasion] 的字面义就是“走 [vad] 入 [in-] 他国领土”。
-       (2) 词根vag表示wander。可以参考wag [摇摆] 以及上一条词根vad/vas加深记忆。
-       (3) 词根ced和cess除了表示go [走] 之外, 在其构成的少量单词中还表示“走开”，即离开，引申出停止的含义。
-     ety
-       vad, vag, ced
-     pos
-       6, 7
-     summary
-       词根vad表示go [走]：invade [侵略] 是指“ (未经允许的情况下) 走 [vad] 进 [in-]”；pervade指“走 [vad] 遍 [per-]”, 当气体或氛围“走遍”空间的每一个角落，即弥漫，充满；evasive形容事物“(从人们的视线、掌心中) 走 [vas] 掉 [e-=ex-] 的 [-ive]”, 即难以发现、捕捉、分离的，也指说话时“回避 [go [vas] away [e-]] 的 [-ive]”, 即含糊其辞的。vague形容“飘忽不定 [vag, wander] 的 [-ue]”, 即含义上表达不清的，视觉上轮廓不清晰的，(可概括成“模糊的”); extravagant表示“过度 [wander [vag] outside [extra-]] 的 [-ant] ”，也特指“花钱过度的”, 即挥霍的。cessation [终止，暂停], 来自词根cess由“走开”引申出的“停止”; incessant表示“不 [in-] 停止 [cess] 的 [-ant]”, 即无间断的。
-     content
-       [根] per- [through] + vad [go] + -e [v.], go through, 遍布 → vt. 弥漫，充满
-     etyma_cognates_l
-       pervade, evasive, extravagant, vague, cessation, incessant
-     phon
-       [pər'veɪd]
-    
 
 # 处理《GRE高分必备短语搭配》
 
@@ -2733,9 +2469,6 @@ print len(dy_base_unit_str_l), "units extracted"
 # print dy_base_unit_str_l[35]
 ```
 
-    36 units extracted
-    
-
 
 ```python
 %%sync_to_file $configDyBeforeMain
@@ -2767,10 +2500,6 @@ dy_index_d = extract_dy_index_content(dy_base_str)
 print len(dy_index_d), 'phrases in total'
 print dy_index_d['a barrage of']
 ```
-
-    365 phrases in total
-    大量的  
-    
 
 
 ```python
@@ -2811,23 +2540,6 @@ print len(dy_phrase_d)
 iter_print(dy_phrase_d['so far'])
 ```
 
-    365
-     exp_cn
-     pos
-       8
-     phrase_block_str
-       **1. 到目前为止**
-       **释** If you tell or ask someone what has happened **so far**, you are telling or asking them what has happened **up until the present point** in a situation or story, and often implying that something different might happen later.
-       **例** So far there has been no word from the missing aircraft that disappeared from the radar four hours ago.
-       **题** It is not particularly surprising that some earlier scholarship concerning such cultures has so far gone unchallenged.
-       关于这些文化的一些早期学说一直没有被人质疑，这并不是一件特别奇怪的事情。
-       **2. 有限地**
-       **释** If you say that something only goes **so far** or can only go so far, you mean that its extent, effect, or influence is **limited**.
-       **例** The church can only go so far in secular matters.
-       **题** In pollen dating, geologic happenings are dated in terms of each other, and one can get just so far by matching independent sequences; but in radiocarbon dating the scale of time is measured in absolute terms of centuries or years.
-       在孢粉定年法中，地质历史上的事件是通过彼此的顺序确定的，因此我们只能有限地匹配不同的独立序列；而放射性碳同位素断年技术则能精确到世纪甚至是日历年的时间尺度。
-    
-
 ## 依据index校订
 
 
@@ -2840,13 +2552,6 @@ for word in dy_phrase_d:
     if word not in dy_index_d:
         print word
 ```
-
-    under one's control
-    on one's own
-    ****
-    under one’s control
-    on one’s own
-    
 
 【勘误】上面两个单词，将中文的单引号替换为英文
 
@@ -2907,7 +2612,9 @@ def process_dy_phrase_block_str(base_d):
                                  'example': example,
                                  'gre_example_en': gre_example_en,
                                  'gre_example_cn': gre_example_cn,
-                                 'pos': base_phrase_d['pos']
+                                 'pos': base_phrase_d['pos'],
+                                 'usage_index': unicode(usage_index + 1),
+                                 'phrase': phrase
                                 }
             phrase_uid = phrase + unicode(usage_index+1)
             processed_phrase_d[phrase_uid] = phrase_detailed_d
@@ -2935,25 +2642,13 @@ if __name__ == '__main__':
     main()
 ```
 
-    Appending to convert_duanyu.py
-    
-
 
 ```python
 # example
 iter_print(dy_phrase_processed_d['so far2'])
 ```
 
-     gre_example_cn
-       在孢粉定年法中，地质历史上的事件是通过彼此的顺序确定的，因此我们只能有限地匹配不同的独立序列；而放射性碳同位素断年技术则能精确到世纪甚至是日历年的时间尺度。
-     pos
-       8
-     cn_exp
-       有限地
-     gre_example_en
-       In pollen dating, geologic happenings are dated in terms of each other, and one can get just so far by matching independent sequences; but in radiocarbon dating the scale of time is measured in absolute terms of centuries or years.
-     en_exp
-       If you say that something only goes **so far** or can only go so far, you mean that its extent, effect, or influence is **limited**.
-     example
-       The church can only go so far in secular matters.
-    
+
+```python
+! jupyter nbconvert explore_all_in_one.ipynb --to markdown
+```

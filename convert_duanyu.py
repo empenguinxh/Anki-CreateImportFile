@@ -90,7 +90,9 @@ def process_dy_phrase_block_str(base_d):
                                  'example': example,
                                  'gre_example_en': gre_example_en,
                                  'gre_example_cn': gre_example_cn,
-                                 'pos': base_phrase_d['pos']
+                                 'pos': base_phrase_d['pos'],
+                                 'usage_index': unicode(usage_index + 1),
+                                 'phrase': phrase
                                 }
             phrase_uid = phrase + unicode(usage_index+1)
             processed_phrase_d[phrase_uid] = phrase_detailed_d
