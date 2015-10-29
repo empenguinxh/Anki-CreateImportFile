@@ -16,7 +16,9 @@
     "GREHe Xin Ci Hui Zhu Ji Yu Jing - Cao Tian Cheng.txt"
     "GREGao Fen Bi Bei Duan Yu Da Pe - Yan Yu Zhen ,Gao Yu ,Chen Qi.txt"
     
-假定你没有修改文件名，并且按照相对路径将这3个txt放到了与该notebook相同路径的"base_data"文件夹中。如果你安装了jupyter notebook，可以打开并运行这个.ipynb文件。它会自动在当前目录下生成三个`_base_d`文件，对应三个txt源文件，可以被AnkiImport脚本调用。另外还会生成三个py脚本文件，可以独立使用，功能都是读入txt源文件并转换，生成对应的`_base_d`文件。这些脚本文件以及AnkiImport脚本会在《Anki系列-用Anki准备GRE》的更新版本中提供，敬请期待。
+假定你没有修改文件名，并且按照相对路径将这3个txt放到了与该notebook相同路径的"base_data"文件夹中。如果你安装了jupyter notebook，可以打开并运行这个.ipynb文件。它会自动在当前目录下生成三个`_base_d`文件，对应三个txt源文件，可以被AnkiImport脚本调用。另外还会生成三个py脚本文件，可以独立使用，功能都是读入txt源文件并转换，生成对应的`_base_d`文件。
+
+notebook开头的辅助函数都被写入了my_helpers.py文件。自定义的magic command被写入sync_to_file_magic_command.py。其他脚本或notebook可方便的调用。
 
 本notebook后续会用三个章节分别处理这三个源文档。  
 第一步当然是将源文档的内容读入为字符串。  
@@ -75,6 +77,7 @@ notebook可以导出为py，然后被其他py脚本import，以调用写在noteb
 
 ```python
 #%%writefile "sync_to_file_magic_command.py"
+#%%load "sync_to_file_magic_command.py"
 # This code can be put in any Python module, it does not require IPython
 # itself to be running already.  It only creates the magics subclass but
 # doesn't instantiate it yet.
@@ -189,7 +192,7 @@ before_main_arg = ' -before def main\(file_name=None\):'
 
 
 ```python
-new3000_convert_script_name = 'new3000_convert.py'
+new3000_convert_script_name = 'convert_new3000.py'
 configNew3000 = '-f ' + new3000_convert_script_name
 configNew3000BeforeMain = configNew3000 + before_main_arg
 configNew3000AfterMain = configNew3000 + ' -indent 4'
@@ -197,7 +200,7 @@ configNew3000AfterMain = configNew3000 + ' -indent 4'
 
 
 ```python
-zhuji_convert_script_name = 'zhuji_convert.py'
+zhuji_convert_script_name = 'convert_zhuji.py'
 configZhuji = '-f ' + zhuji_convert_script_name
 configZhujiBeforeMain = configZhuji + before_main_arg
 configZhujiAfterMain = configZhuji + ' -indent 4'
@@ -205,7 +208,7 @@ configZhujiAfterMain = configZhuji + ' -indent 4'
 
 
 ```python
-duanyu_convert_script_name = 'duanyu_convert.py'
+duanyu_convert_script_name = 'convert_duanyu.py'
 configDy = '-f ' + duanyu_convert_script_name
 configDyBeforeMain = configDy + before_main_arg
 configDyAfterMain = configDy + ' -indent 4'
@@ -1381,15 +1384,15 @@ _ = map(iter_print, iter_value_of_key_through_d_l_d_d(new3000_base_d, 'usages', 
     cn_f: u'\uff1a' cn_h: u'\uff1a'
     en_f: u'\uff1a' en_h: u':'
     Some examples of the raw string of the explanation field
-     *vt.* 伪装（防止被认出）：to modify the manner or appearance of in order to **prevent recognition**
-     *adj.* 极为神圣的，不可侵犯的：**most sacred** or holy
-     *vt.* 废除，取消：to **make void**
-     *n.* 扩荒者，先驱者：one of the **first to settle** in a territory
-     *n.* 切断，分离，分裂：a **division** or split in a group or union: schism
-     *vt.* 限制：to **limit** narrowly; restrict
-     *vt.* 使消遣：to cause（someone）to pass the time **agreeably** occupied
-     *adj.* 浑浊的，不清晰的：**lacking** in **clarity** or brightness
-     *vi.* 为了给人留下印象而表演，哗众取宠：to play or act so as to **impress** onlookers
+     *vt.* 编织（纱线）：to form by **interlacing yarn** or thread in a series of connected loops **with needles**
+     *adj.* 不招摇的，低调的：**not** excessively **showy**
+     *adj.* 重要的，转折点的：of, relating to, or being a **major turning** point
+     *vt.* 巧妙地操纵：to **guide with adroitness and design** or to bring about or secure as a result of skillful management
+     *vt.* 称赞；颂扬：to **speak** or write **in high praise of**
+     *adj.* 装饰华丽的，过分雕琢的，复杂的：characterized by **extravagance**, **complexity**, or **flamboyance**
+     *vt.* 安全度过（危机等），经受住：to **come through**（something）safely
+     *adj.* 气候温和的：marked by temperatures that are **neither** too **high** nor too **low**
+     *adj.* 顺从的：easily imposed on; **submissive**
     
 
 
@@ -1534,12 +1537,12 @@ _ = map(pprint, iter_through_and_sample_k(new3000_base_d, 5, [('all','',True), (
                                                               ('key', 'en', False)]))
 ```
 
-    [u'puissance', u'**power**; might']
-    [u'repel', u'to **fight against**; resist']
-    [u'strut', u'to **walk** with a **pompous** and affected air']
-    [u'aphorism',
-     u'a **short witty** sentence which expresses a general truth or comment']
-    [u'gainsay', u'to **declare false**']
+    [u'gall', u'a deep-seated **ill will**']
+    [u'mute', u'to **soften** the tone, color, shade, or hue of']
+    [u'agreeable',
+     u"**pleasing to the mind or senses** especially as according well with one's tastes or needs"]
+    [u'balm', u'a sweet or **pleasant smell**']
+    [u'mentor', u'a trusted counselor or **guide**']
     
 
 ## 处理例句
@@ -1567,16 +1570,16 @@ _ = map(functools.partial(iter_print, print_list_index=False),
 del path_to_example
 ```
 
-       grandeur
-       例　the glory that was Greece and the grandeur that was Rome 希腊的荣耀和罗马的辉煌
-       compound
-       例　compound a felony 私了案件
-       enamored
-       例　Many teenage girls became enamored of the movie idol for her boyish good looks. 很多年轻的女孩子因为该影星男性化的帅气面庞而对她深深迷恋。
-       ethics
-       例　an old-fashioned work ethics 传统的工作行为规范
-       trepidation
-       例　trepidation about starting a new career 对开创一项新事业感到恐惧
+       absolute
+       例　absolute proof 确凿的证据
+       subterfuge
+       例　The spy obtained the documents by subterfuge. 间谍通过狡猾的计谋获得了文件。
+       cogent
+       例　a cogent analysis 一项相关的研究
+       knead
+       例　knead dough 揉面团‖knead a painful calf muscle 给疼痛的小腿肌肉按摩
+       dissension
+       例　Although we have dissension, we are friend all the same. 虽然我们意见不合，但我们还是朋友。‖There is a continued dissension among historians on the exact spot of Columbus's first landing. 对于哥伦布第一次的准确登陆地点这个问题，历史学家们总是存在分歧。
     
 
 ### 判断缺少分隔符的情形
@@ -2078,6 +2081,17 @@ new3000_base_d = process_all_syns(new3000_base_d)
 with codecs.open('new3000_base_d.txt', 'w', encoding='utf-8') as f:
     json.dump(new3000_base_d, f)
 ```
+
+
+```python
+%%writefile -a $new3000_convert_script_name
+
+if __name__ == '__main__':
+    main()
+```
+
+    Appending to convert_new3000.py
+    
 
 ## 最终结果
 
@@ -2616,6 +2630,17 @@ with codecs.open('zhuji_base_d.txt', 'w', encoding='utf-8') as f:
     json.dump(zhuji_base_word_d, f)
 ```
 
+
+```python
+%%writefile -a $zhuji_convert_script_name
+
+if __name__ == '__main__':
+    main()
+```
+
+    Appending to convert_zhuji.py
+    
+
 ## 最终成果
 
 
@@ -2901,6 +2926,17 @@ dy_phrase_processed_d = process_dy_phrase_block_str(dy_phrase_d)
 with codecs.open('duanyu_base_d.txt', 'w', encoding='utf-8') as f:
     json.dump(dy_phrase_processed_d, f)
 ```
+
+
+```python
+%%writefile -a $duanyu_convert_script_name
+
+if __name__ == '__main__':
+    main()
+```
+
+    Appending to convert_duanyu.py
+    
 
 
 ```python
