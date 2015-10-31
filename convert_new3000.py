@@ -1,4 +1,3 @@
-
 # coding:utf-8
 import re
 import json
@@ -9,24 +8,16 @@ from random import random
 from random import randint
 from pprint import pprint
 from copy import deepcopy
+
 from my_helpers import *
 file_new_3000 = "base_data\GREHe Xin Ci Hui Kao Fa Jing Xi  (Xin Dong Fang Da Yu Ying Yu Xue Xi Cong Shu ) - Chen Qi.txt"
-
 match_new3000_list_start_re = re.compile(ur'^# List \d+', re.M)
-
-
 def strip_last_list(list_data):
     strip_start_re = re.compile(ur'# Word List 1　与说有关的词根构成的单词(.|\n)*$')
     return strip_start_re.sub('', list_data)
-
-
 match_unit_start_re = re.compile(ur'^## Unit \d+', re.M)
-
-
 match_word_block_start = re.compile(ur'^\*\*(?P<word>[a-z\-éï]+)\*\*(?P<phon>［.+］)?', re.U|re.M)
 # phon represent phonetic symbol
-
-
 def get_word_of_one_unit(unit_block_str, list_index, unit_index):
     returned_words_d_d = {}
     word_block_str_l = extract_content_between(unit_block_str, match_word_block_start)
@@ -39,16 +30,12 @@ def get_word_of_one_unit(unit_block_str, list_index, unit_index):
                       'pos':(list_index, unit_index)}
         returned_words_d_d[word] = one_word_d
     return returned_words_d_d
-
-
 def get_new3000_base_d(base_unit_data_l_l):
     _new3000_base_d = {}
     for list_index, unit_data_l in enumerate(base_unit_data_l_l):
         for unit_index, unit_data in enumerate(unit_data_l):
             _new3000_base_d.update(get_word_of_one_unit(unit_data, list_index+1, unit_index+1))
     return _new3000_base_d
-
-
 # revise
 def revise_word_base_data(word_d):
     # revise anarchist
@@ -73,21 +60,15 @@ def revise_word_base_data(word_d):
             temp_index += 1
         to_revise_word_d[word_block_str] = to_revise_str
     return word_d
-
-
 character_start = {'examples': '例', 
                    'syns': '近', 
                    'ants': '反', 
                    'der': '派'}
-
-
 is_str_start_with_character_fun_d = {}
 for key, value in character_start.iteritems():
     def gen_match_fun_closure(_value):
         return lambda s: s[0] == _value.decode('utf-8')
     is_str_start_with_character_fun_d[key] = gen_match_fun_closure(value)
-
-
 def revise_entry_name(words_d):
     # revise random
     words_d['random']['word_block_str'] = words_d['random']['word_block_str'].replace(u'例　aimless',
@@ -98,12 +79,8 @@ def revise_entry_name(words_d):
     # revise clan
     words_d['clan']['word_block_str'] = words_d['clan']['word_block_str'] .replace(u'反　clannish', 
                                                                                    u'派　clannish')
-
-
 match_usage_start_re = re.compile(ur'^【考(?:法|点)\d?】(.*)$', re.M|re.U)
 match_der = re.compile(ur'^')
-
-
 def wb_str_2_usages_d_l(word_block_str):
     '''
     convert word block (string) to usages like structure
@@ -164,8 +141,6 @@ def wb_str_2_usages_d_l(word_block_str):
         usages_d_l.append(one_usage_d)
         is_complex_der_l.append(is_complex_der)
     return is_complex_der_l, usages_d_l
-
-
 def gen_usages_for_all_words(words_d):
     match_der_word = re.compile(ur'^派 ([a-z,/\-éï]+)', re.M)
     complex_ders_d = {}
@@ -204,13 +179,9 @@ def gen_usages_for_all_words(words_d):
                         #iter_print(complex_ders_d[der_word]['usages'])
         #del words_d[word]['word_block_str']
     return complex_ders_d, words_d
-
-
 match_phon_re = re.compile(ur'［.*］', re.U)
 match_pspeech_re = re.compile(ur'\*([a-z\/.]+\.)\*')
 has_cn_char_fun = lambda _str: re.compile(ur'[\u4e00-\u9fa5]').search(_str) is not None
-
-
 def process_exp(exp_field_str):
     '''
     input: a unicode object corresponding the explanation line of the word
@@ -257,8 +228,6 @@ def process_exp(exp_field_str):
         #print 'More than two sep: ', exp_field_str
         pass
     return returned_d
-
-
 def process_exp_field_for_all_words(words_d):
     for word, usage_index, exp_str in iter_value_of_key_through_d_l_d_d(words_d, 'usages', 'exp', 
                                                                         yield_top_key=True, yield_list_index=True):
@@ -304,18 +273,10 @@ def process_exp_field_for_all_words(words_d):
         del base_exp_d['pspeech']
         one_usage['exp_d'] = base_exp_d['exp']
     return words_d
-
-
 match_all_cn_re = ur' ?[a-z0-9：。；，“”（）、？《》]*?[\u4e00-\u9fa5]+.*?(?=$|[a-z]+ [a-z]+)'
 match_all_cn_re = re.compile(match_all_cn_re, re.I)
-
-
 match_cn_punc_with_en_char_fun = lambda _str: re.search(ur'[。？]( )?(?=[a-z])', _str, re.I)
-
-
 match_cn_char_with_en_char_fun = lambda _str: re.search(ur'[\u4e00-\u9fa5](?=[a-z])', _str, re.I)
-
-
 # revise
 def revise_no_sep(words_d):
     path_to_example = [('all', '', True), ('key', 'usages', False), ('all','',True),('key','examples',False)]
@@ -340,11 +301,7 @@ def revise_no_sep(words_d):
                     example_str = example_str[:index_to_add_sep] + u'\u2016' + example_str[index_to_add_sep:]
         words_d[word]['usages'][usage_index]['examples'] = u'例 ' + example_str       
     return words_d
-
-
 match_sentence_en_part_re = re.compile(ur'[a-z0-9éï\'";:,?!%()$ⅠⅡ.*/\- —　‘’“”（）]+(?=[＜《〈\u4e00-\u9fa5])', re.I)
-
-
 def sep_en_cn_sentence(sentences_str):
     if sentences_str == '':
         return '', '', '',
@@ -386,8 +343,6 @@ def sep_en_cn_sentence(sentences_str):
             print sentence
             raise ValueError('Warning! No en part!')
     return new_line_join(en_str_l), new_line_join(cn_str_l), new_line_join(en_cn_str_l)
-
-
 def process_examples(words_d):
     path_to_example = [('all', '', True), ('key', 'usages', False), ('all','',True),('key','examples',False)]
     example_iter = iter_through_general(words_d, path_to_example)
@@ -395,11 +350,7 @@ def process_examples(words_d):
         examples_en, examples_cn, examples_encn = sep_en_cn_sentence(example_str)
         words_d[word]['usages'][usage_index]['examples_d'] = {'en': examples_en, 'cn': examples_cn, 'en_cn': examples_encn}
     return words_d
-
-
 match_ants_en_part_re = re.compile(ur'[a-zéï][a-zéï ,-/]+(?=[　\u4e00-\u9fa5（]|$)', re.I)
-
-
 def sep_en_cn_ants(ants_str):
     if ants_str == '':
         return '', '', '', 0
@@ -416,8 +367,6 @@ def sep_en_cn_ants(ants_str):
         print 'Warning! en in cn part!', cn_str
     en_cn = ants_str.strip(' \n')
     return '; '.join(en_str_l), cn_str, en_cn, num_ants_of_explanations
-
-
 def process_all_ants(words_d):
     path_to_ants = [('all','',True),('key','usages',False),('all','',True),('key','ants',False)]
     ants_iter = iter_through_general(words_d, path_to_ants)
@@ -429,18 +378,13 @@ def process_all_ants(words_d):
             #print word
             pass
     return words_d
-
-
 strip_first_two_chars_fun = lambda _str: _str[2:]
-
-
 def process_all_syns(words_d):
     path_to_syns = [('all','',True),('key','usages',False),('all','',True),('key','syns',False)]
     for word, usage_index, syns_str in iter_through_general(words_d, path_to_syns):
         usage_d = words_d[word]['usages'][usage_index]
         usage_d['syns'] = strip_first_two_chars_fun(syns_str)
     return words_d
-
 def main(file_name=None):
     if file_name is None:
         file_name = file_new_3000
@@ -471,5 +415,6 @@ def main(file_name=None):
     new3000_base_d = process_all_syns(new3000_base_d)
     with codecs.open('new3000_base_d.txt', 'w', encoding='utf-8') as f:
         json.dump(new3000_base_d, f)
+
 if __name__ == '__main__':
     main()

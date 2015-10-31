@@ -1,0 +1,79 @@
+# Sync to file
+
+## 设计
+
+jupyter notebook允许你交互式的编写程序，在代码之间插入markdown，用更好的排版呈现关于代码的解释。但解释本身不是目的，重点在于那些真正做事的代码。所以，往往希望在将所有cell顺序执行一遍后，某些代码被结合到一起，构成一个干净简洁的脚本。
+
+ipython中，%%writefile可以将代码写入文件，不过有个缺陷，即不能在写入文件的同时，执行cell中的代码。通过阅读[Defining custom magics](http://ipython.readthedocs.org/en/stable/config/custommagics.html)，学习到如何自定义magic command来实现需求。但这个文档并没有详细描述ipython提供给magic command的接口。通过搜索，找到了ipython在Github上的源码（其实本地也有）。其中，跟刚才提到的需求密切相关的相关的有[magic.py](https://github.com/ipython/ipython/blob/master/IPython/core/magic.py)、[magic_arguments.py](https://github.com/ipython/ipython/blob/master/IPython/core/magic_arguments.py)。另外，%%writefile的具体实现在[osm.py](https://github.com/ipython/ipython/blob/master/IPython/core/magics/osm.py)中。
+
+写代码前，先解决两个基本问题。
+
+第一，如何将代码递交给ipython来执行？
+非常简单。`self.shell.run_cell(cell)`。
+
+第二，希望能同步文档，而不是简单的覆盖。
+代码不存在于目标文档中时，在指定位置写入；存在于目标文档中时，自动更新。本质上即mini版的git merge。为此，考虑如下两点。
+
+首先，必须向magic command传递一系列参数。python中，库argparse可以很好的解析命令行参数。教程[Argparse Tutorial](https://docs.python.org/2/howto/argparse.html)解释了简单的语法。ipython基于argparse，定义了自己处理magic command参数的模块，即[magic_arguments.py](https://github.com/ipython/ipython/blob/master/IPython/core/magic_arguments.py)。这个脚本同时提供了简单的使用指南。基本语法即通过[修饰器](http://coolshell.cn/articles/11265.html)来追加arg。
+
+接下来，该如何实现所谓的同步呢？具体来说，如何设计参数，以及如何实现参数所代表的功能？基本想法如下。
+
+* 将目标文档读入为字符串，后称目标字符串。
+
+* 先确定在目标字符串的哪个范围内匹配cell，即两个变量，search_start_index，search_end_index。
+默认值分别为0和len(target_str)，即原字符串的开始和结束位置。两个变量之间的范围称之为search scope。
+
+* option "-a --after"，以及"-b --before"，进一步确定上述变量。两个选项各接受一个字符串，用来构建两个正则表达式。
+后文以参数名来代表相应的匹配模式。如果-r（见后文）不被指定，字符串中的元字符会被转义，即当作普通字符对待。
+当-a -b同时被指定时，在目标字符串中寻找两个模式之间的范围，即-a的end位置和-b的start位置，保存为一组index，type为int。如果存在多组index，取第一组。如果不能同时匹配-a和-b，则先匹配-b，不成功再匹配-a，如果仍不成功，两个变量取默认值。
+当只有-a或相当于只有-a被指定时，将-a的第一个成功匹配的end position赋给`search_start_index`。如果没有成功匹配，按照默认处理。
+当只有-b或相当于只有-b被指定时，将-b的第一个成功匹配的start position赋给`search_end_index`。如果没有成功匹配，按照默认处理。
+
+* 接下来确定写入cell的具体范围，即变量`write_start_index`和`write_end_index`。
+初始值都是None。
+如果想同步cell和目标字符串，必然要在目标字符串中寻找cell中的内容。
+首先将cell作为整体，在search scope中匹配。如果成功，则什么也不做。
+如果不成功，将cell按换行符'\n'拆分为若干行，然后用第一行与最后一行构建一个正则表达式，并在search scope中进行搜索。
+如果同时找到，将match对象的start position赋给`write_start_index`，end position赋给`write_end_index`。多组index取第一组。
+然后用cell的内容覆盖目标字符串中`write_start_index`和`write_end_index`之间的内容。
+需要注意，一块代码在cell中的缩进可能同在脚本中不一致，一般是相较少些，匹配时要考虑空白字符。
+
+* 以行来匹配有两个问题需要考虑。
+第一，cell中的头部和尾部可能有大量的空行，应该匹配第一个非空行和最后一个非空行之间的内容。
+用strip()可以很好的去掉字符串两端的空白字符。
+第二，cell中只有一个非空行时，不该以行来匹配。应该从左至右，逐渐增加的取子串，反复尝试匹配，直到第一个不能匹配的位置为止。
+以line来代表这一行。先匹配line[0:1]，如果成功，继续匹配line[0:2]，以此类推，直到第一个不成功的匹配为止。
+当然后，用line[0:i]来匹配，如果匹配结果不唯一或者没有匹配，则视line在目标字符串中不存在，采取追加策略。如果结果唯一，则覆盖。
+
+* 得益于python的缩进式语法，通过计算缩进量，一个语法单元的终止位置（即下一个语法单元的起始位置）很容易确定。
+如果第一行和最后一行不能同时匹配，仍可根据第一行所指示的语法单元，将`write_end_index`定义为语法单元的结束位置。然后，用cell第一行之后的内容覆盖目标字符串中对应的范围。
+如果第一行也不能匹配，那么根据`search_start_index`及`search_end_index`，将cell整体添加到目标字符串中。具体位置需要考虑参数"-w"和"-i"。
+
+* option "-m --writing mode"，指明写入模式，可选值[i, a, di, da, o]。
+i: insert，把cell的内容添加到search scope的开头。
+a: append，把cell的内容添加到search scope的结尾。
+
+
+* option "-t --test"，测试模式。
+不写入cell。通常与-l使用。
+
+* option "-p --pass"，决定是否运行cell中的代码。
+默认先运行代码，再执行写入文件的操作。
+如果指定-p，则跳过运行，只写入。
+
+* option "-r --reg"，指明-a -b的字符串是正则表达式。接受一个字符串参数，作为正则表达式的选项。比如，`reU|re.I`。
+注意，程序在内部也会使用正则表达式，默认会使用`re.S|re.M`。上述选项会被追加到默认选项后。
+另外，如果只想开启正则模式，而不指定flag，需键入`d`
+
+* option "-i --indent"，强制代码缩进，接受一个整型参数。
+默认，根据`write_start_index`与`write_end_index`之间的区域，或者`search_start_index`与`search_end_index`之间的区域，判断语法单元并决定缩进量。
+如果指定-i，那么在cell的每行行首强制追加指定数目的空格字符。
+
+* option "-l --log"，是否输出程序运行日志。不接受参数。
+当给定的文本模式，即-a-b，cell的第一行和最后一行，出现不能匹配或者多个匹配的情况时，程序会静默的执行一系列应对措施。
+这些行为被记录在变量`log_message_l`中（一个list）。
+如果指定-l，`log_message_l`会被转变为字符串后输出。
+
+* arg "file"，指明需同步的目标文件。读入至少一个字符串，多字符串以空格间隔，对应多个文件。
+file是一个positional argument，即在前面列出的option及其argument都被尝试匹配后，仍然剩下的部分。
+需要注意，虽然是剩下的，但在parse之前必须连续，即之间不能出现其他的option。

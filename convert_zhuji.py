@@ -1,4 +1,3 @@
-
 # coding:utf-8
 import re
 import json
@@ -9,15 +8,11 @@ from random import random
 from random import randint
 from pprint import pprint
 from copy import deepcopy
+
 from my_helpers import *
 file_zhuji = "base_data\GREHe Xin Ci Hui Zhu Ji Yu Jing - Cao Tian Cheng.txt"
-
 match_escape_char_re = re.compile(r'\\(?=[\[\]()*+])')
-
-
 match_zhuji_list_start_re = re.compile(ur'### List \d+', re.M)
-
-
 def get_etyma_block_d_l_l(list_data_l):
     match_etyma_block_start = re.compile(r'^\d+\.(.*)$\n|^Unit \d+$', re.M)
     etyma_block_d_l_l = []
@@ -63,8 +58,6 @@ def get_etyma_block_d_l_l(list_data_l):
             etyma_block_d_l.append(etyma_block_d)
         etyma_block_d_l_l.append(etyma_block_d_l)
     return etyma_block_d_l_l
-
-
 def revise_miss_etyma(base_d_l_l):
     # revise list 25 etyma 3 revise tum
     base_d_l_l[25-1][3-1]['ety'] = 'tum'
@@ -72,11 +65,7 @@ def revise_miss_etyma(base_d_l_l):
     base_d_l_l[5-1][4-1]['ety'] = 'post, pound'
     # revise list 6 etyma 7 revise vad, vag, ced
     base_d_l_l[6-1][7-1]['ety'] = 'vad, vag, ced'
-
-
 match_cognate_block_start_re = re.compile(ur'^([a-zéï-]+)(.*?)(\[.*\])$', re.M|re.I)
-
-
 def process_ety_block_str(base_d_l_l):
     path_to_ety_block_str = [('all','',True),('all','',True),('key','ety_block_str',False)]
     for list_index, ety_index, ety_block_str in iter_through_general(base_d_l_l, 
@@ -86,8 +75,6 @@ def process_ety_block_str(base_d_l_l):
         ety_group_exp = returned_l.pop(0).strip()
         etyma_block_d['etyma_group_explanation'] = ety_group_exp
         etyma_block_d['cognate_block_str_l'] = returned_l
-
-
 # revise List 13, ety 3 revise scru
 def revise_scru(base_d_l_l):
     '''
@@ -108,8 +95,6 @@ def revise_scru(base_d_l_l):
                  'etyma_group_explanation': new_ety_group_exp,
                  'summary':'', 'ety_block_str':''}
     base_d_l_l[13-1].append(new_ety_d)
-
-
 def process_cognate_block(cognate_block_str):
     cognate_dict = {}
     cognate_lines_l = cognate_block_str.split('\n')
@@ -145,8 +130,6 @@ def process_cognate_block(cognate_block_str):
         modified_cognate_lines_l.append(cognate_line)
     cognate_dict['content'] = '\n'.join(modified_cognate_lines_l)
     return cognate_dict
-
-
 def process_all_cognate_block(base_data_d_l_l):
     base_word_d = {}
     path_to_cognate_block_str = [('all','',True),('all','',True),
@@ -163,8 +146,6 @@ def process_all_cognate_block(base_data_d_l_l):
             print 'Warning! word already exists!', word
         base_word_d[word] = one_word_d
     return base_word_d
-
-
 def add_etyma_cognates_l(base_word_d, base_d_l_l):
     path_to_etyma_d = [('all','',False),('all','',False)]
     for etyma_d, in iter_through_general(base_d_l_l, path_to_etyma_d):
@@ -180,7 +161,6 @@ def add_etyma_cognates_l(base_word_d, base_d_l_l):
                 etyma_cognates_l.append(word)
             for word in etyma_cognates_l:
                 base_word_d[word]['etyma_cognates_l'] = ', '.join(etyma_cognates_l)
-
 def main(file_name=None):
     if file_name is None:
         file_name = file_zhuji
@@ -202,5 +182,6 @@ def main(file_name=None):
     add_etyma_cognates_l(zhuji_base_word_d, zhuji_base_d_l_l)
     with codecs.open('zhuji_base_d.txt', 'w', encoding='utf-8') as f:
         json.dump(zhuji_base_word_d, f)
+
 if __name__ == '__main__':
     main()

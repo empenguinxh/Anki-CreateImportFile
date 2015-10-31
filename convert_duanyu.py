@@ -1,4 +1,3 @@
-
 # coding:utf-8
 import re
 import json
@@ -9,17 +8,15 @@ from random import random
 from random import randint
 from pprint import pprint
 from copy import deepcopy
+
 from my_helpers import *
 file_duanyu = "base_data\GREGao Fen Bi Bei Duan Yu Da Pe - Yan Yu Zhen ,Gao Yu ,Chen Qi.txt"
-
 def extract_dy_unit(base_str):
     base_str = base_str.split(u"# 索引\n")[0]
     match_dy_unit_start_re = re.compile(ur'^# Unit \d+', re.M)
     base_unit_str_l = extract_content_between(base_str, match_dy_unit_start_re)
     base_unit_str_l = [base_unit_str.split(u'## 检测练习\n')[0] for base_unit_str in base_unit_str_l]
     return base_unit_str_l
-
-
 def extract_dy_index_content(base_str):
     match_dy_index_cn_start_re = re.compile(u' (?=[\u4e00-\u9fa5\u3010])')
     index_str = base_str.split(u"# 索引\n")[1]
@@ -34,8 +31,6 @@ def extract_dy_index_content(base_str):
         else:
             print 'Warning, no en or no cn:', en_cn
     return index_d
-
-
 def extract_dy_phrase_d(base_unit_str_l):
     base_phrase_d = {}
     for unit_index, base_unit_str in enumerate(base_unit_str_l):
@@ -57,8 +52,6 @@ def extract_dy_phrase_d(base_unit_str_l):
                                         'phrase_block_str': phrase_block_str,
                                         'pos': unit_index}
     return base_phrase_d
-
-
 def process_dy_phrase_block_str(base_d):
     processed_phrase_d = {}
     for phrase, base_phrase_d in base_d.iteritems():
@@ -97,7 +90,6 @@ def process_dy_phrase_block_str(base_d):
             phrase_uid = phrase + unicode(usage_index+1)
             processed_phrase_d[phrase_uid] = phrase_detailed_d
     return processed_phrase_d
-
 def main(file_name=None):
     if file_name is None:
         file_name = file_duanyu

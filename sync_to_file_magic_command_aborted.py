@@ -32,7 +32,7 @@ def format_log(_str_l):
         assert isinstance(_str, basestring)
         if _str.startswith(('#', )):
             formatted_str = _str
-        elif _str.startswith(('##', '--', '++', '!!')):
+        elif _str.startswith(('## ', '--', '++', '!!')):
             formatted_str = ' '*second_level_indent + _str
         else:
             match_result = match_wrap_re.match(_str)
@@ -65,6 +65,47 @@ def construct_indent_line_re(_cell_str, escape=True, arbitrary_end=False):
         _re_str_l.append(_cell_line)
     _re_str = '\n'.join(_re_str_l)
     return _re_str
+
+
+def quote_str(_str, double=True):
+    quote_char = '"' if double else '\''
+    return quote_char + _str + quote_char
+
+
+def increment_search(_match_str, _target_str):
+    """
+    try to search _match_str[0:i] in _target_str line by line
+    increase i by 1 if there is at least one match
+    stop when _match_str is exhausted or at an i that results in no match
+    for sync_to_file, the _match_str can not be exhausted, otherwise this fun
+     will not be called
+    :param _match_str: a string pattern to match
+    :param _target_str: a string in which the _match_str is searched
+    :return: first_match_obj, pre_match_multiple
+    """
+    first_match_obj = None
+    pre_match_is_multiple = None
+    pre_match_line_re_str = None
+    for i in range(1, len(_match_str)):
+        match_line_re_str = '^[ \t]*(' + re.escape(_match_str[0:i]) + '.*)$'
+        match_line_re = re.compile(match_line_re_str, re.M)
+        n_match = 0
+        is_multiple = False
+        for one_match_obj in match_line_re.finditer(_target_str):
+            n_match += 1
+            if n_match > 1:
+                is_multiple = True
+                break
+            first_match_obj = one_match_obj
+        if n_match == 0:
+            if pre_match_is_multiple is None:
+                pre_match_is_multiple = is_multiple
+                pre_match_line_re_str = match_line_re
+            break
+        else:
+            pre_match_is_multiple = is_multiple
+            pre_match_line_re_str = match_line_re_str
+    return first_match_obj, pre_match_is_multiple, pre_match_line_re_str
 
 
 def convert_to_unix_line_feed(_str):
@@ -104,9 +145,9 @@ def search_target_str(_re_str, _target_str, _re_flag, _start_pos=None, _end_pos=
 class SyncToFile(Magics):
 
     # m:multiple match, u:unique match, n:no match
-    match_result_prefix_d = {'m': 'Multiple match of pattern',
-                             'u': 'Unique match of pattern',
-                             'n': 'No match of pattern'}
+    match_result_prfix_d = {'m': 'Multiple match of pattern',
+                            'u': 'Unique match of pattern',
+                            'n': 'No match of pattern'}
     # add_prefix_fun_d =\
     #   {'m': modify_fun_add_pattern_by_adding_prefix('Multiple match of pattern'),
     #    'u': modify_fun_add_pattern_by_adding_prefix('Unique match of pattern'),
@@ -117,18 +158,18 @@ class SyncToFile(Magics):
               help='search after this pattern.')
     @argument('-b', '--before', type=str,
               help='search before this pattern')
-    @argument('-m', '--mode', type=str, choices=['o', 'i', 'a', 'di', 'da'], default='da',
+    @argument('-m', '--mode', type=str, choices=['o', 'u', 'i', 'a'], default='u',
               help='''the mode of how to synchronize
                       o: overwrite,
                          use the cell to overwrite the search region
+                      u: update,
+                         try to figure out the write region based on the
+                         content of the cell and the search region, then
+                         use the cell to overwrite the write region
                       i: insert,
                          write the cell at the top of the search region
                       a: append,
-                         write the cell at the bottom the search region
-                      di: first match the cell as whole,
-                          if no match, insert the cell
-                      da: first match the cell as whole,
-                          if no match, insert the cell''')
+                         write the cell at the bottom the search region''')
     @argument('-p', '--pass', action='store_true',
               help='do not execute the code')
     @argument('-r', '--reg', type=str,
@@ -171,12 +212,15 @@ class SyncToFile(Magics):
                  'cell': cell,
                  'cell_line_l': None,
                  'n_cell_line_l': None,
-                 'modified_target_str_l': None}
+                 'write_start_index_l': None,
+                 'write_end_index_l': None,
+                 'indent_l': None,
+                 'force_indent': None}
         # get args
         args_d = vars(parse_argstring(self.sync_to_file, line))
         par_d['args_d'] = args_d
         log_message_l.append('# Parsing arguments...')
-        log_message_l.append('-wrap2 ' + str(args_d))
+        log_message_l.append('-wrap ' + str(args_d))
         # run the code
         log_message_l.append('# Running the cell...')
         if not args_d['pass']:
@@ -199,19 +243,7 @@ class SyncToFile(Magics):
             file_path_l, target_str_l, n_target_str
         # set core variables
         self.set_search_region(log_message_l, par_d)
-        # modify target str
-        self.modify_target_str(log_message_l, par_d)
-        # write the modified target str to target file
-        if not args_d['test']:
-            log_message_l.append('# Write target file(s)..')
-            for target_index, write_str in enumerate(par_d['modified_target_str_l']):
-                file_path = file_path_l[target_index]
-                # log_message_l.append('++ Deal with file ' + file_path)
-                with codecs.open(file_path, 'w', encoding='utf-8') as f:
-                    f.write(write_str)
-                # log_message_l.append('-- Finished. File: ' + file_path)
-        else:
-            log_message_l.append('#Test mode. No file is changed.')
+        self.set_write_region_and_indent(log_message_l, par_d)
         # output programme log if required
         if args_d['log']:
             print format_log(log_message_l)
@@ -311,9 +343,7 @@ class SyncToFile(Magics):
         _par_d['search_start_index_l'], _par_d['search_end_index_l'] = \
             search_start_index_l, search_end_index_l
 
-    @staticmethod
-    def modify_target_str(_log_message_l, _par_d):
-        _log_message_l.append('# Begin to modify the target str')
+    def set_write_region_and_indent(self, _log_message_l, _par_d):
         file_path_l = _par_d['file_path_l']
         n_target_str = _par_d['n_target_str']
         target_str_l = _par_d['target_str_l']
@@ -321,81 +351,153 @@ class SyncToFile(Magics):
         args_d = _par_d['args_d']
         search_start_index_l = _par_d['search_start_index_l']
         search_end_index_l = _par_d['search_end_index_l']
-        indent = args_d['indent']
-        indented_cell_l = []
+        write_start_index_l = [None for _ in range(n_target_str)]
+        write_end_index_l = [None for _ in range(n_target_str)]
+        indent_l = [args_d['indent'] for _ in range(n_target_str)]
+        force_indent = True if args_d['indent'] != 0 else False
+        _log_message_l.append('# Set the scope to write cell and figure out indent')
+        write_scope_re_flag = re.S | re.M
         # pre process the cell: skip lines that are blank
         # before the first non blank line or after the last non blank line
         cell = cell.strip()
         cell_line_l = [] if cell == '' else cell.split('\n')
         n_cell_line = len(cell_line_l)
-        modified_target_str_l = [target_str_l[i] for i in range(n_target_str)]
+        first_line, last_line = '', ''
+        # first_line_index, last_line_index = 0, 0
+        if n_cell_line > 0:
+            # at least one non blank line
+            first_line = cell_line_l[0]
+        if n_cell_line > 1:
+            # two non blank lines
+            last_line = cell_line_l[-1]
         update_d = {'cell': cell, 'cell_line_l': cell_line_l,
                     'n_cell_line': n_cell_line,
-                    'modified_target_str_l': modified_target_str_l}
+                    'write_start_index_l': write_start_index_l,
+                    'write_end_index_l': write_end_index_l,
+                    'indent_l': indent_l,
+                    'force_indent': force_indent}
         _par_d.update(update_d)
+        # go through this step only if there is something to write and the mode is update
         if n_cell_line == 0:
-            # nothing to write
-            _log_message_l.append('!! Empty cell. Nothing to write.')
-            return
-        # indent cell for writing
-        for cell_line in cell_line_l:
-            indented_cell_l.append(' '*indent + cell_line)
-        indented_cell = '\n'.join(indented_cell_l)
-        # log writing mode
-        append_message_d = {'o': '!! Writing mode is overwrite.',
-                            'i': '!! Writing mode is insert.',
-                            'a': '!! Writing mode is append.',
-                            'di': '!! Writing mode is different and insert.',
-                            'da': '!! Writing mode is different and append.'}
-        _log_message_l.append(append_message_d[args_d['mode']])
-        # begin to build modified str
-        for target_index, target_str in enumerate(target_str_l):
-            file_path = file_path_l[target_index]
-            _log_message_l.append('++ Deal with file ' + file_path)
-            start_index = search_start_index_l[target_index]
-            end_index = search_end_index_l[target_index]
-            if target_str == '':
-                _log_message_l.append('Target file is empty.')
-                modified_target_str_l[target_index] = indented_cell
-            else:
-                left_segment_end = None
-                right_segment_start = None
-                if args_d['mode'] == 'o':
-                    left_segment_end = start_index
-                    right_segment_start = end_index
-                elif args_d['mode'] in ['i', 'di']:
-                    left_segment_end = start_index
-                    right_segment_start = start_index
+            _log_message_l.append('## Empty cell. The stage is skipped.')
+        elif args_d['mode'] == 'o':
+            _log_message_l.append('## Writing mode is overwrite.')
+            write_start_index_l = [search_start_index_l[i] for i in range(n_target_str)]
+            write_end_index_l = [search_end_index_l[i] for i in range(n_target_str)]
+            _log_message_l.append('The cell will overwrite the search scope')
+            # use the current indent setting
+        elif args_d['mode'] == 'i':
+            _log_message_l.append('## Writing mode is insert.')
+            write_start_index_l = [search_start_index_l[i] for i in range(n_target_str)]
+            _log_message_l.append('The cell will be added at the start position of the search scope')
+            # use the current indent setting
+        elif args_d['mode'] == 'a':
+            _log_message_l.append('## Writing mode is insert.')
+            write_start_index_l = [search_end_index_l[i] for i in range(n_target_str)]
+            _log_message_l.append('The cell will be added at the end position of the search scope')
+            # use the current indent setting
+        else:
+            _log_message_l.append('## Writing mode is update.')
+            if n_cell_line == 1:
+                # only one non blank line, add a warning message
+                _log_message_l.append('!! Cell has only one  non blank line. Use incremental search.')
+            # search and set write_start_index and write_end_index for every target str
+            for target_index, target_str in enumerate(target_str_l):
+                search_start_index = search_start_index_l[target_index]
+                search_end_index = search_end_index_l[target_index]
+                _log_message_l.append('++ Deal with file ' + file_path_l[target_index])
+                if target_str == '':
+                    write_start_index_l = [search_end_index_l[i] for i in range(n_target_str)]
+                    _log_message_l.append('No content or not exist')
+                    _log_message_l.append('The cell will be added at the end position of the search scope')
+                    _log_message_l.append('-- Finished. File:' + file_path_l[target_index])
+                    continue
+                try_only_first_line_flag = False
+                # first, try to match the whole cell
+                _log_message_l.append('Try to match the cell as whole.')
+                write_scope_re_str = construct_indent_line_re(cell)
+                n_match, first_match_obj = \
+                    search_target_str(write_scope_re_str, target_str, write_scope_re_flag,
+                                      search_start_index, search_end_index)
+                if n_match > 0:
+                    _log_message_l.append('Whole cell matched. No need to update.')
+                    continue
                 else:
-                    # args_d['mode'] in ['a', 'da']:
-                    left_segment_end = end_index
-                    right_segment_start = end_index
-                if args_d['mode'] in ['da', 'di']:
-                # try to match the cell as whole
-                    _log_message_l.append('Try to match the cell as whole.')
-                    cell_re = construct_indent_line_re(cell)
-                    n_match, _ = search_target_str(cell_re, target_str, re.M,
-                                                   start_index, end_index)
-                    if n_match > 0:
-                        _log_message_l.append('Whole cell matched. No need to update.')
-                        left_segment_end = None
-                        right_segment_start = None
-                if not (left_segment_end is None):
-                    modified_str = target_str[:left_segment_end]
-                    if modified_str != '':
-                        if modified_str[-1] != '\n':
-                            modified_str += '\n'
-                    modified_str += indented_cell
-                    if modified_str[-1] != '\n':
-                        modified_str += '\n'
-                    modified_str += target_str[right_segment_start:]
-                    modified_target_str_l[target_index] = modified_str
-                    _log_message_l.append('Target str is modified')
-            _log_message_l.append('-- Finished. File: ' + file_path)
+                    self.log_match_result(_log_message_l, write_scope_re_str, 'n')
+                    _log_message_l.append('Going to guess the position of the cell in the target string')
+                if n_cell_line == 1:
+                    _log_message_l.append('Begin incremental search.')
+                    # only the first_line is a non-empty string
+                    max_sub_str_match_obj, is_multiple, write_scope_re_str = \
+                        increment_search(first_line, target_str)
+                    if (max_sub_str_match_obj is None) or is_multiple:
+                        if is_multiple:
+                            self.log_match_result(_log_message_l, write_scope_re_str, 'm')
+                        else:
+                            self.log_match_result(_log_message_l, write_scope_re_str, 'n')
+                        write_start_index_l = [search_end_index_l[i] for i in range(n_target_str)]
+                        _log_message_l.append('The cell be added at the end of the search scope.')
+                        # use the current indent setting
+                    else:
+                        # unique match
+                        self.log_match_result(_log_message_l, write_scope_re_str, 'u')
+                        write_start_index_l[target_index] = max_sub_str_match_obj.start(1)
+                        write_end_index_l[target_index] = max_sub_str_match_obj.end(1)
+                        indent_l[target_index] = None  # no need to indent
+                        _log_message_l.append('The corresponding line will be updated')
+                else:
+                    # has both the first line and the last line
+                    # todo
+                    # it is possible that the match block contain multi syntax block
+                    _log_message_l.append('Try the between match')
+                    write_scope_re_str = '^[ \t]*(' + \
+                                         re.escape(first_line) + \
+                                         '[ \t]*$)(.*?)(^[ \t]*' \
+                                         + re.escape(last_line) +\
+                                         '[ \t]*$)'
+                    n_match, first_match_obj = \
+                        search_target_str(write_scope_re_str, target_str, write_scope_re_flag,
+                                          search_start_index, search_end_index)
+                    if n_match == 0:
+                        # turn on first line match flag
+                        self.log_match_result(_log_message_l, write_scope_re_str, 'n')
+                        try_only_first_line_flag = True
+                    else:
+                        if n_match > 1:
+                            self.log_match_result(_log_message_l, write_scope_re_str, 'm')
+                        else:
+                            self.log_match_result(_log_message_l, write_scope_re_str, 'u')
+                        _log_message_l.append('The matched block will be updated.')
+                        write_start_index_l[target_index] = first_match_obj.start()
+                        write_end_index_l[target_index] = first_match_obj.end()
+                if try_only_first_line_flag:
+                    # has both first and last line, but the between match failed
+                    write_scope_re_str = '^[ \t]*(' + re.escape(first_line) + ')[ \t]*$'
+                    _log_message_l.append('Restricted to match the first line.')
+                    n_match, first_match_obj = \
+                        search_target_str(write_scope_re_str, target_str, write_scope_re_flag,
+                                          search_start_index, search_end_index)
+                    if n_match == 0:
+                        # all tries failed
+                        self.log_match_result(_log_message_l, write_scope_re_str, 'n')
+                        write_start_index_l = [search_end_index_l[i] for i in range(n_target_str)]
+                        _log_message_l.append('All tries failed. \n'
+                                              'The cell will be added at the end of the search scope.')
+                    else:
+                        if n_match > 1:
+                            self.log_match_result(_log_message_l, write_scope_re_str, 'm')
+                        else:
+                            self.log_match_result(_log_message_l, write_scope_re_str, 'u')
+                        _log_message_l.append('First line match succeed.')
+                        write_start_index_l[target_index] = first_match_obj.start()
+                _log_message_l.append('-- Finished. File: ' + file_path_l[target_index])
+        _par_d['write_start_index_l'] = write_start_index_l
+        _par_d['write_end_index_l'] = write_end_index_l
+        _par_d['indent_l'] = indent_l
 
     @staticmethod
     def log_match_result(_log_l, pattern_str, key_word='u'):
-        _log_l.append(SyncToFile.match_result_prefix_d[key_word])
+        _log_l.append(SyncToFile.match_result_prfix_d[key_word])
         formatted_pattern_str = '-wrap2 ' + pattern_str
         _log_l.append(formatted_pattern_str)
         

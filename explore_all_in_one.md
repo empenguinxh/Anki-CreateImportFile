@@ -63,117 +63,75 @@ notebook开头的辅助函数都被写入了my_helpers.py文件。自定义的ma
 + example  
 一个功能实现完了，确信没问题，以示例展示如何使用或者某些输入值的输出。
 
-## 在其他脚本中import
+# Sync to file
 
-notebook可以导出为py，然后被其他py脚本import，以调用写在notebook中的函数。  
-但notebook中会有大量实验性的代码，你不希望这些代码在notebook作为module导入时被执行。  
-那么可不可以选择性的导出某些cell呢？
+## 设计
 
-* ipython有一系列magic command，跟刚才的需求相关的是%%writefile，但功能有限，而且不能同时执行cell中的代码。
-* 但是我们可以自己定义magic command，实现上述功能。使用`self.shell.run_cell(cell)`执行cell中代码，然后再写入文件。
-* 有时候，可能希望在同一个文档中的不同地方写入代码，而不是一味的追加在末尾。下面的这个magic command，已经能实现如下功能：在某个字符串之前加入cell中的代码，并且可以指定统一的缩进空格数。
-* 为何不实现在某个字符串之后加入代码的功能呢？未来加入～
+jupyter notebook允许你交互式的编写程序，在代码之间插入markdown，用更好的排版呈现关于代码的解释。但解释本身不是目的，重点在于那些真正做事的代码。所以，往往希望在将所有cell顺序执行一遍后，某些代码被结合到一起，构成一个干净简洁的脚本。
+
+ipython中，%%writefile可以将代码写入文件，不过有个缺陷，即不能在写入文件的同时，执行cell中的代码。通过阅读[Defining custom magics](http://ipython.readthedocs.org/en/stable/config/custommagics.html)，学习到如何自定义magic command来实现需求。但这个文档并没有详细描述ipython提供给magic command的接口。通过搜索，找到了ipython在Github上的源码（其实本地也有）。其中，跟刚才提到的需求密切相关的相关的有[magic.py](https://github.com/ipython/ipython/blob/master/IPython/core/magic.py)、[magic_arguments.py](https://github.com/ipython/ipython/blob/master/IPython/core/magic_arguments.py)。另外，%%writefile的具体实现在[osm.py](https://github.com/ipython/ipython/blob/master/IPython/core/magics/osm.py)中。
+
+写代码前，先解决两个基本问题。
+
+第一，如何将代码递交给ipython来执行？
+非常简单。`self.shell.run_cell(cell)`。
+
+第二，希望能同步文档，而不是简单的覆盖。
+代码不存在于目标文档中时，在指定位置写入；存在于目标文档中时，自动更新。本质上即mini版的git merge。为此，考虑如下两点。
+
+首先，必须向magic command传递一系列参数。python中，库argparse可以很好的解析命令行参数。教程[Argparse Tutorial](https://docs.python.org/2/howto/argparse.html)解释了简单的语法。ipython基于argparse，定义了自己处理magic command参数的模块，即[magic_arguments.py](https://github.com/ipython/ipython/blob/master/IPython/core/magic_arguments.py)。这个脚本同时提供了简单的使用指南。基本语法即通过[修饰器](http://coolshell.cn/articles/11265.html)来追加arg。
+
+接下来，该如何实现所谓的同步呢？具体来说，如何设计参数，以及如何实现参数所代表的功能？基本想法如下。
+
+* 将目标文档读入为字符串，后称目标字符串。  
+
+* 先确定在目标字符串的哪个范围内匹配cell，即两个变量，search_start_index，search_end_index。
+默认值分别为0和len(target_str)，即原字符串的开始和结束位置。两个变量之间的范围称之为search scope。
+
+* option "-a --after"，以及"-b --before"，进一步确定上述变量。两个选项各接受一个字符串，用来构建两个正则表达式。
+后文以参数名来代表相应的匹配模式。如果-r（见后文）不被指定，字符串中的元字符会被转义，即当作普通字符对待。
+当-a -b同时被指定时，在目标字符串中寻找两个模式之间的范围，即-a的end位置和-b的start位置，保存为一组index，type为int。如果存在多组index，取第一组。如果不能同时匹配-a和-b，则先匹配-b，不成功再匹配-a，如果仍不成功，两个变量取默认值。
+当只有-a或相当于只有-a被指定时，将-a的第一个成功匹配的end position赋给`search_start_index`。如果没有成功匹配，按照默认处理。
+当只有-b或相当于只有-b被指定时，将-b的第一个成功匹配的start position赋给`search_end_index`。如果没有成功匹配，按照默认处理。
+
+
+* option "-m --mode"，指明写入模式，可选值[i, a, di, da, o]。  
+i: insert，把cell的内容添加到search scope的开头。  
+a: append，把cell的内容添加到search scope的结尾。  
+di: different and insert，即cell作为整体不能在目标字符串中匹配后，再insert。否则维持原样。  
+da：differnt and append。类似di。
+
+* option "-t --test"，测试模式。  
+不写入cell。通常与-l使用。
+
+* option "-p --pass"，决定是否运行cell中的代码。  
+默认先运行代码，再执行写入文件的操作。
+如果指定-p，则跳过运行，只写入。
+
+* option "-r --reg"，指明-a -b的字符串是正则表达式。接受一个字符串参数，作为正则表达式的选项。比如，`reU|re.I`。  
+注意，程序在内部也会使用正则表达式，默认会使用`re.S|re.M`。上述选项会被追加到默认选项后。  
+另外，如果只想开启正则模式，而不指定flag，需键入`d`
+
+* option "-i --indent"，强制代码缩进，接受一个整型参数。  
+默认是0。  
+如果指定-i，那么在cell的每行行首强制追加指定数目的空格字符。
+
+* option "-l --log"，是否输出程序运行日志。不接受参数。  
+当给定的文本模式，即-a-b，cell的第一行和最后一行，出现不能匹配或者多个匹配的情况时，程序会静默的执行一系列应对措施。  
+这些行为被记录在变量`log_message_l`中（一个list）。  
+如果指定-l，`log_message_l`会被转变为字符串后输出。
+
+* arg "file"，指明需同步的目标文件。读入至少一个字符串，多字符串以空格间隔，对应多个文件。  
+file是一个positional argument，即在前面列出的option及其argument都被尝试匹配后，仍然剩下的部分。  
+需要注意，虽然是剩下的，但在parse之前必须连续，即之间不能出现其他的option。
+
+## 构造
+
+参考脚本 `sync_to_file_magic_command.py`
 
 
 ```python
-#%%writefile "sync_to_file_magic_command.py"
-#%%load "sync_to_file_magic_command.py"
-# This code can be put in any Python module, it does not require IPython
-# itself to be running already.  It only creates the magics subclass but
-# doesn't instantiate it yet.
-from IPython.core.magic import (Magics, magics_class, line_magic,
-                                cell_magic, line_cell_magic)
-
-# The class MUST call this class decorator at creation time
-@magics_class
-class MyMagics(Magics):
-
-    @cell_magic
-    def sync_to_file(self, line, cell):
-        line = line.strip()
-        if line == '':
-            raise ValueError('No File to Sync!')
-        # run the code
-        self.shell.run_cell(cell)
-        # write to file
-        import codecs
-        import re
-        import os.path
-        #print repr(line)
-        # parse args
-        file_name_l = None
-        place_after = None
-        place_before = None
-        indent = 0
-        overwrite = False
-        # match whether_to_overwrite
-        match_w_re = re.compile(ur'^(.*?)-w$')
-        match_result = match_w_re.match(line)
-        if match_result:
-            overwrite = True
-            line = match_w_re.sub(r'\1', line).strip()
-        # match the after arg
-        match_place_after_re = re.compile(ur'^(.*?)(-after )(.*?)(-.*$|$)')
-        match_result = match_place_after_re.match(line)
-        if match_result:
-            place_after = match_result.group(3).strip()
-            if place_after == '':
-                place_after = None
-            line = match_place_after_re.sub(r'\1\4', line)
-        # match the before arg
-        match_place_before_re = re.compile(ur'^(.*?)(-before )(.*?)(-.*$|$)')
-        match_result = match_place_before_re.match(line)
-        if match_result:
-            place_before = match_result.group(3).strip()
-            if place_before == '':
-                place_before = None
-            line = match_place_before_re.sub(r'\1\4', line).strip()
-        # match the indent arg
-        match_indent_re = re.compile(ur'^(.*?)(-indent )(\d+)$')
-        match_result = match_indent_re.match(line)
-        if match_result:
-            indent = int(match_result.group(3))
-            line = match_indent_re.sub(r'\1', line).strip()
-        # match the file_name arg
-        match_file_names_re = re.compile(ur'(?<=-f ).*?(?=-f|$)')
-        file_name_l = match_file_names_re.findall(line)
-        file_name_l = [file_name.strip() for file_name in file_name_l]
-        # add indentation
-        cell_line_l = cell.split('\n')
-        cell_line_l = [' '*indent + cell_line for cell_line in cell_line_l]
-        cell = '\n'.join(cell_line_l)
-        # begin to sync file
-        overwrite = True if not os.path.isfile(file_name_l[0]) else overwrite
-        if overwrite:
-            for file_name in file_name_l:
-                with codecs.open(file_name, 'w', encoding='utf-8') as f:
-                    f.write(cell)            
-        elif place_before is None:
-            for file_name in file_name_l:
-                with codecs.open(file_name, 'a', encoding='utf-8') as f:
-                    f.write('\n')
-                    f.write(cell)
-        else:
-            for file_name in file_name_l:
-                with codecs.open(file_name, 'r', encoding='utf-8') as f:
-                    file_str = f.read()
-                match_the_before_str_re = re.compile(place_before)
-                match_result = match_the_before_str_re.search(file_str)
-                if match_result:
-                    before_index = match_result.start()
-                    file_str = file_str[:before_index] + '\n' + cell + '\n'*2 + file_str[before_index:]
-                else:
-                    pass
-                with codecs.open(file_name, 'w', encoding='utf-8') as f:
-                    f.write(file_str)            
-
-# In order to actually use these magics, you must register them with a
-# running IPython.  This code must be placed in a file that is loaded once
-# IPython is up and running:
-ip = get_ipython()
-# You can register the class itself without instantiating it.  IPython will
-# call the default constructor on it.
-ip.register_magics(MyMagics)
+%run "sync_to_file_magic_command.py"
 ```
 
 ## sync_to_file参数
@@ -182,41 +140,43 @@ ip.register_magics(MyMagics)
 
 
 ```python
-configMyHelpers = '-f my_helpers.py'
+configMyHelpers = 'my_helpers.py'
 ```
 
 
 ```python
-before_main_arg = ' -before def main\(file_name=None\):'
+before_main_arg = ' -b "def main(file_name=None):"'
+after_main_arg = ' -a "def main(file_name=None):"'
+indent_arg = ' -i 4'
 ```
 
 
 ```python
 new3000_convert_script_name = 'convert_new3000.py'
-configNew3000 = '-f ' + new3000_convert_script_name
-configNew3000BeforeMain = configNew3000 + before_main_arg
-configNew3000AfterMain = configNew3000 + ' -indent 4'
+configNew3000 = new3000_convert_script_name
+configNew3000BeforeMain = new3000_convert_script_name + before_main_arg
+configNew3000AfterMain = new3000_convert_script_name + after_main_arg + indent_arg
 ```
 
 
 ```python
 zhuji_convert_script_name = 'convert_zhuji.py'
-configZhuji = '-f ' + zhuji_convert_script_name
+configZhuji = zhuji_convert_script_name
 configZhujiBeforeMain = configZhuji + before_main_arg
-configZhujiAfterMain = configZhuji + ' -indent 4'
+configZhujiAfterMain = configZhuji + after_main_arg + indent_arg
 ```
 
 
 ```python
 duanyu_convert_script_name = 'convert_duanyu.py'
-configDy = '-f ' + duanyu_convert_script_name
+configDy = duanyu_convert_script_name
 configDyBeforeMain = configDy + before_main_arg
-configDyAfterMain = configDy + ' -indent 4'
+configDyAfterMain = configDy + after_main_arg + indent_arg
 ```
 
 
 ```python
-%%sync_to_file $configNew3000 $configMyHelpers $configZhuji $configDy -w
+%%sync_to_file $configNew3000 $configMyHelpers $configZhuji $configDy -m o
 
 # coding:utf-8
 import re
@@ -1384,17 +1344,17 @@ _ = map(iter_print, iter_value_of_key_through_d_l_d_d(new3000_base_d, 'usages', 
     cn_f: u'\uff1a' cn_h: u'\uff1a'
     en_f: u'\uff1a' en_h: u':'
     Some examples of the raw string of the explanation field
-     *adj.* 昏暗的；肮脏的：**darkened** with smoke and grime; **dirty** or discolored
-     *v.* 系紧，扎紧：to gather **into a tight mass** by means of a line or cord
-     *adj.* 谦逊的：marked by **meekness** or **modesty** in behavior, attitude, or spirit; not arrogant or prideful
-     *vt.* 尊敬，把…视为神圣：to **respect** or honor greatly; revere
-     *v.* 堵塞：to **prevent** passage **through** by **filling with something**
-     *adj.* 下意识的，潜在意识的：**below** the threshold of conscious **perception**
-     *n.* 起始，开始：the point at which something **begins**
-     *adj.* 含糊不清的：of or relating to deliberate **obscurity**（as of literary or conversational style）
-     *vt.* 假装，模仿：to have or **take on the appearance**, form, or sound of: imitate
-     *vi.* 畏缩；退缩：to **draw back** in fear, pain, or disgust
-     *adj.* 酷热的：**intensely hot**
+     *n.* 代理人，代表：a person authorized to act as **representative for another**
+     *adj.* 无力的，无能的：**lacking in power**, strength, or vigor
+     *adj.* 非常有害的，致命的：**extremely harmful**; devastating
+     *vt.* 拧，扭动：to pull, force, or move by violent **wringing or twisting movements**
+     *n.* 排列，阵列：a regular and imposing grouping or **arrangement**
+     *vt.* 阻碍（成长）：to **hinder** the normal **growth**, development, or progress of
+     *v.* 改变方向或者路线，绕道：to **change** one's course or **direction**
+     *n.* 令人羞愧的事物，耻辱：one that **causes shame**, rebuke or blame
+     ［'ægrɪgeɪt］ *v.* 集合，聚集：to **collect or gather** into a mass or whole
+     *n.*（地位、功能）对等的人或物：one having the **same function or characteristics** as another
+     *adj.* 精确的，准确的：**precise**, accurate
     
 
 
@@ -1539,12 +1499,13 @@ _ = map(pprint, iter_through_and_sample_k(new3000_base_d, 5, [('all','',True), (
                                                               ('key', 'en', False)]))
 ```
 
-    [u'salubrious', u'favorable to or **promoting health** or well-being']
-    [u'nettle', u'to **arouse** to sharp but transitory annoyance or **anger**']
-    [u'partial', u'inclined to favor one party more than the other:**biased**']
-    [u'annex',
-     u'to **join**(something)to a mass, quantity, or number so as to bring about an overall increase']
-    [u'confine', u'to keep within **limits**']
+    [u'archaic', u'**no** longer **current** or applicable; **antiquated**']
+    [u'theatrical',
+     u'marked by **exaggerated** self-display and **unnatural** behavior']
+    [u'accidental', u'**not being a vital part** of or belonging to something']
+    [u'want',
+     u'the condition or quality of **lacking** something usual or necessary']
+    [u'retaliate', u'to **pay back**(as an injury)in kind']
     
 
 ## 处理例句
@@ -1572,16 +1533,13 @@ _ = map(functools.partial(iter_print, print_list_index=False),
 del path_to_example
 ```
 
-       scurvy
-       例　She was beset by a whole scurvy swarm of con artists. 她被一群下流的骗子艺术家蜂拥围攻。
-       outmaneuver
-       例　He outmaneuvered his congressional opponent. 他以计谋战胜了国会的对手。
-       speculate
-       例　I speculate that someone has been using this cabin as a trysting place. 我猜测有情侣把这个小屋当做他们幽会的地方。
-       preeminent
-       例　The writer's style is brilliant and his command of words, preeminent. 作者的文风和用词都十分出色。
-       reprobate
-       例　The program rehabilitates reprobates and turns them into hard-working, law-abiding citizens. 这个项目让那些堕落的人改过自新，并将他们变成勤劳守法的好公民。
+       perilous
+       例　perilous journey through hostile territory 穿过敌方领土的危险行程
+       coercion
+       churlish
+       prune
+       cherished
+       例　a cherished heirloom that has been in the family for generations 在这个家族里流传了几代的备受珍爱的传家宝‖He described the picture with his wife as his most cherished possession. 他把这张与妻子的合影看作自己最为珍爱的财富。
     
 
 ### 判断缺少分隔符的情形
@@ -1673,6 +1631,46 @@ del all_that_without_splt_symbol
     　The mixed smell of sawdust and glue pervaded the whole factory. 锯末与胶水的味道弥漫了整个工厂。the corruption that pervades every stratum of society 充斥在社会每个阶层中的腐败
     ***********
      大火过后整个房子只剩下被烧焦的骨架了。
+     在报告发表之前，我们看到了他的整体框架。
+    　Only the charred skeleton of the house remained after the fire. 大火过后整个房子只剩下被烧焦的骨架了。We saw a skeleton of the report before it was published. 在报告发表之前，我们看到了他的整体框架。
+    ***********
+     在豪华游轮上享受着无忧旅途的乘客
+     春假期间无忧无虑的大学生
+    　passengers on a luxury cruise ship enjoying a carefree vacation 在豪华游轮上享受着无忧旅途的乘客carefree college students on spring break 春假期间无忧无虑的大学生
+    ***********
+     那个纨绔子弟愿意花数千美元，只为他的女朋友买
+     Birkin的包包。
+    　That dandy was willing to spend thousands of dollars just to get the Hermes Birkin for his girlfriend. 那个纨绔子弟愿意花数千美元，只为他的女朋友买Hermes Birkin的包包。
+    ***********
+     就品位而言，艺术赞助人和收藏家
+     Guggenheim是一个狂热者：她总是倾向于最新奇、最让人满意和最独特的佳品。
+    　In matters of taste, the art patron and collector Peggy Guggenheim was a zealot: she was for the strangest, the most surprising, the most satisfying, the best, the unique. 就品位而言，艺术赞助人和收藏家Peggy Guggenheim是一个狂热者：她总是倾向于最新奇、最让人满意和最独特的佳品。
+    ***********
+     他总是三个小孩里最不听话的一个。
+     过去行为上有些问题的调皮小孩
+    　He had always been the most wayward of their three children. 他总是三个小孩里最不听话的一个。wayward children with a history of behavioral problems 过去行为上有些问题的调皮小孩
+    ***********
+     你介意晚饭时放一些令人愉快的音乐吗？
+     因为感慨自然之美稍纵即逝而产生的令人愉悦的忧伤
+    　Would you mind putting on some agreeable music for dinner? 你介意晚饭时放一些令人愉快的音乐吗？the agreeable melancholy resulting from a sense of the transitoriness of natural beauty 因为感慨自然之美稍纵即逝而产生的令人愉悦的忧伤
+    ***********
+     学生们为他们在世界中的角色感到迷茫。
+     instructions因为不明确的指示而受挫
+    　Students have ambiguous feelings about their role in the world. 学生们为他们在世界中的角色感到迷茫。frustrated by ambiguous instructions因为不明确的指示而受挫
+    ***********
+     理清思路;
+     澄清某一问题
+     clarify his mind 理清思路;clarify a subject 澄清某一问题
+    ***********
+     确保你在面试时的回答简短而恰当。
+     你需要携带所有的相关证明。
+    　Make sure your answers during the interview are short and relevant. 确保你在面试时的回答简短而恰当。You need to bring all the relevant certificates with you. 你需要携带所有的相关证明。
+    ***********
+     我不觉得他们做了室友之后能和谐相处。
+     一个与对远古人类的已有知识不存在矛盾的理论
+    　I don't think that they could be compatible as roommates. 我不觉得他们做了室友之后能和谐相处。a theory that is compatible with what we already know about early man 一个与对远古人类的已有知识不存在矛盾的理论
+    ***********
+    
 
 【勘误】对于没有分隔符但却出现多段中文字符的句子  
 * 匹配一个中文句号或中文问号，再加一个英文字符，在中文符号后加分隔符
@@ -1694,6 +1692,9 @@ print test_str[:cn_pun_index] + u'\u2016' + test_str[cn_pun_index:]
 del test_str, cn_pun_index
 ```
 
+    I don't think that they could be compatible as roommates. 我不觉得他们做了室友之后能和谐相处。‖a theory that is compatible with what we already know about early man 一个与对远古人类的已有知识不存在矛盾的理论
+    
+
 
 ```python
 %%sync_to_file $configNew3000BeforeMain
@@ -1708,6 +1709,9 @@ cn_char_index = match_cn_char_with_en_char_fun(test_str).end()
 print test_str[:cn_char_index] + u'\u2016' + test_str[cn_char_index:]
 del test_str, cn_char_index
 ```
+
+    passengers on a luxury cruise ship enjoying a carefree vacation 在豪华游轮上享受着无忧旅途的乘客‖carefree college students on spring break 春假期间无忧无虑的大学生
+    
 
 
 ```python
@@ -1754,6 +1758,16 @@ unit_test()
 del unit_test
 ```
 
+     那个纨绔子弟愿意花数千美元，只为他的女朋友买
+     Birkin的包包。
+     That dandy was willing to spend thousands of dollars just to get the Hermes Birkin for his girlfriend. 那个纨绔子弟愿意花数千美元，只为他的女朋友买Hermes Birkin的包包。
+    ***********
+     就品位而言，艺术赞助人和收藏家
+     Guggenheim是一个狂热者：她总是倾向于最新奇、最让人满意和最独特的佳品。
+     In matters of taste, the art patron and collector Peggy Guggenheim was a zealot: she was for the strangest, the most surprising, the most satisfying, the best, the unique. 就品位而言，艺术赞助人和收藏家Peggy Guggenheim是一个狂热者：她总是倾向于最新奇、最让人满意和最独特的佳品。
+    ***********
+    
+
 至此，多个例句应该都有分隔符间隔了。
 
 ### 拆分中英文
@@ -1773,6 +1787,9 @@ test_str = u'     　add spices to the stew with complete abandon 肆无忌惮�
 print match_sentence_en_part_re.match(test_str).group()
 del test_str
 ```
+
+         　add spices to the stew with complete abandon 
+    
 
 上面的匹配规则，可能导致中文部分的内容也被匹配。比如  
 `A GPA of 1.0 flusters him. 1.0的绩点让他很慌乱。`会被匹配为`A GPA of 1.0 flusters him. 1.0`  
@@ -1864,6 +1881,34 @@ del path_to_example_d
 iter_print(new3000_base_d['abandon']['usages'][0])
 ```
 
+     exp_d
+       en
+         carefree, freedom from **constraint**
+       cn
+         放纵
+       en_cn
+         放纵：carefree, freedom from **constraint**
+     pspeech
+       n.
+     ph_symbl
+       [ə'bændən]
+     examples_d
+       en
+         add spices to the stew with complete abandon
+       cn
+         肆无忌惮地向炖菜里面加调料
+       en_cn
+         add spices to the stew with complete abandon 肆无忌惮地向炖菜里面加调料
+     der
+     ants
+     examples
+       例 add spices to the stew with complete abandon 肆无忌惮地向炖菜里面加调料
+     exp
+       *n.* 放纵：carefree, freedom from **constraint**
+     syns
+       近　unconstraint, uninhibitedness, unrestraint
+    
+
 ## 处理反义词
 
 ### 示例
@@ -1893,6 +1938,13 @@ test_str = u'unthreatening 没有威胁的；reassuring 令人安心的'
 print test_str
 iter_print(match_ants_en_part_re.findall(test_str))
 ```
+
+    unthreatening 没有威胁的；reassuring 令人安心的
+     0
+       unthreatening 
+     1
+       reassuring 
+    
 
 
 ```python
@@ -1998,6 +2050,9 @@ if __name__ == '__main__':
     main()
 ```
 
+    Appending to convert_new3000.py
+    
+
 ## 最终结果
 
 
@@ -2007,6 +2062,98 @@ if __name__ == '__main__':
 iter_print(new3000_base_d['salutary'])
 #iter_print(new3000_base_d['fawn'])
 ```
+
+     usages
+       0
+         exp_d
+           en
+             beneficial, **promoting health**
+           cn
+             有益健康的
+           en_cn
+             有益健康的：beneficial, **promoting health**
+         ants_d
+           en
+             debilitating, deleterious, noxious, virulent 
+           cn
+             有害的，有毒的
+           en_cn
+             debilitating, deleterious, noxious, virulent 有害的，有毒的
+         pspeech
+           adj.
+         ph_symbl
+           ['sæljəteri]
+         examples_d
+           en
+             salutary exercise
+           cn
+             有益健康的锻炼
+           en_cn
+             salutary exercise 有益健康的锻炼
+         der
+         ants
+           反　debilitating, deleterious, noxious, virulent 有害的，有毒的
+         examples
+           例 salutary exercise 有益健康的锻炼
+         exp
+           *adj.* 有益健康的：beneficial, **promoting health**
+         syns
+           good, healthy, restorative, salubrious, tonic, wholesome
+       1
+         exp_d
+           en
+             **promoting** or contributing to personal or social **well-being**
+           cn
+             有利的,利好的
+           en_cn
+             有利的，利好的：**promoting** or contributing to personal or social **well-being**
+         ants_d
+           en
+             bad, disadvantageous, unfavorable, unfriendly, unhelpful, unprofitable 
+           cn
+             不利的
+           en_cn
+             bad, disadvantageous, unfavorable, unfriendly, unhelpful, unprofitable 不利的
+         pspeech
+           adj.
+         ph_symbl
+           ['sæljəteri]
+         examples_d
+           en
+             The low interest rates should have a salutary effect on business.
+             a salutary warning
+           cn
+             低利率对于商业而言应该是有利的。
+             善意的警告
+           en_cn
+             The low interest rates should have a salutary effect on business. 低利率对于商业而言应该是有利的。
+             a salutary warning 善意的警告
+         der
+         ants
+           反　bad, disadvantageous, unfavorable, unfriendly, unhelpful, unprofitable 不利的
+         examples
+           例 The low interest rates should have a salutary effect on business. 低利率对于商业而言应该是有利的。‖a salutary warning 善意的警告
+         exp
+           *adj.* 有利的，利好的：**promoting** or contributing to personal or social **well-being**
+         syns
+           advantageous, benefic, beneficent, benignant, favorable, friendly, helpful, kindly, profitable
+     word_block_str
+       【考法1】*adj.* 有益健康的：beneficial, **promoting health**
+       例　salutary exercise 有益健康的锻炼
+       近　good, healthy, restorative, salubrious, tonic, wholesome
+       反　debilitating, deleterious, noxious, virulent 有害的，有毒的
+       【考法2】*adj.* 有利的，利好的：**promoting** or contributing to personal or social **well-being**
+       例　The low interest rates should have a salutary effect on business. 低利率对于商业而言应该是有利的。a salutary warning 善意的警告
+       近　advantageous, benefic, beneficent, benignant, favorable, friendly, helpful, kindly, profitable
+       反　bad, disadvantageous, unfavorable, unfriendly, unhelpful, unprofitable 不利的
+     pos
+       0
+         22
+       1
+         4
+     phon
+       ['sæljəteri]
+    
 
 # 处理《GRE核心词汇助记与精练》
 
@@ -2103,6 +2250,9 @@ print 'Should have 39 Lists. Extract', len(zhuji_base_list_l)
 #print zhuji_base_list_l[38]
 ```
 
+    Should have 39 Lists. Extract 39
+    
+
 ## 提取etyma_block
 
 + 先把list_block 按照 “小结&复习” 拆分成两部分，然后只处理第一部分
@@ -2176,6 +2326,9 @@ zhuji_base_d_l_l = get_etyma_block_d_l_l(zhuji_base_list_l)
 print 'In total', len(zhuji_base_d_l_l), 'lists'
 ```
 
+    In total 39 lists
+    
+
 
 ```python
 %%sync_to_file $configZhujiBeforeMain
@@ -2200,6 +2353,23 @@ revise_miss_etyma(zhuji_base_d_l_l)
 iter_print(zhuji_base_d_l_l[24][2])
 ```
 
+     ety
+       tum
+     summary
+       contumacious形容 [-acious] “像 (肿瘤 [tumor] 一样) 完全 [con-] 凸起 [tum]”, 比喻不服从的，倔强的 (肿瘤不服从正常的细胞分化规律, 不易根治)。tumult指社会“肿胀 [tum] 起来, 一些人煽动、使动荡”, 即骚乱，暴动 (像肿瘤一样不断膨胀，对人、社会危害极大)。
+     pos
+       0
+         25
+       1
+         3
+     ety_block_str
+       词根tum表示swell [肿胀] , 构成单词tumor [n. 肿瘤]。
+       contumacious [ˌkɑ:ntju'meɪʃəs]
+       [根] con- [加强语气] + tum [swell] + -acious [a.], swell completely, 像肿瘤一样肿胀、凸起 → a. 不服从的，倔强的
+       tumult ['tjuːmʌlt]
+       [根] tum [swell] + -ult [n.], swell [肿胀], 不平静 → n. 骚动，暴动
+    
+
 ## 处理ety_block_str
 
 * 之前提取的ety_block_str里包含了对词根组的解释（etyma_group_explanation），以及所有的同根词（cognate_block）。
@@ -2216,6 +2386,21 @@ match_cognate_block_start_re = re.compile(ur'^([a-zéï-]+)(.*?)(\[.*\])$', re.M
 # example
 iter_print(extract_content_between(zhuji_base_d_l_l[1-1][6-1]['ety_block_str'], match_cognate_block_start_re, True))
 ```
+
+     0
+       verb作为单词是“动词”的意思，作为词根指一般的单词，即word。
+     1
+       verbatim [vɜːr'beɪtɪm]
+       [根] verb [word] + a + tim (e), (a) word a time → ad.逐字地 (抄写) → 一字不差地
+     2
+       verbose [vɜːr'boʊs]
+       [根] verb [word] + -ose [a., full of], full of words → a.冗长的，嗦的
+       [注] 同义词wordy [a. 冗长的，嗦的]
+     3
+       reverberate [rɪ'vɜːrbəreɪt]
+       [根] re- [back] + verb [word, sound] + er + -ate [v.],sound back → vi. 回荡，回响
+       [注] 也可以参考vibrate [v. 震动] ，将reverberate理解成 (声波的) 回震，即回荡、回响
+    
 
 
 ```python
@@ -2356,6 +2541,14 @@ def process_all_cognate_block(base_data_d_l_l):
 zhuji_base_word_d = process_all_cognate_block(zhuji_base_d_l_l)
 ```
 
+    Warning! word already exists! scruple
+    Warning! word already exists! scrupulous
+    Warning! word already exists! scrutable
+    Warning! word already exists! scrutinize
+    Warning! word already exists! noisome
+    Warning! word already exists! understate
+    
+
 ## 添加同根词列表
 
 依据cognate_block_str_l给每个单词添加同根词列表。只对有意义的词根添加。
@@ -2405,6 +2598,9 @@ if __name__ == '__main__':
     main()
 ```
 
+    Appending to convert_zhuji.py
+    
+
 ## 最终成果
 
 
@@ -2413,6 +2609,34 @@ if __name__ == '__main__':
 pprint(zhuji_base_word_d['pervade'])
 iter_print(zhuji_base_word_d['pervade'])
 ```
+
+    {'content': u'[\u6839] per- [through] + vad [go] + -e [v.], go through, \u904d\u5e03 \u2192 vt. \u5f25\u6f2b\uff0c\u5145\u6ee1\n',
+     'ety': 'vad, vag, ced',
+     'etyma_cognates_l': u'pervade, evasive, extravagant, vague, cessation, incessant',
+     'etyma_group_explanation': u'(1) \u8bcd\u6839vad\u548cvas\u8868\u793ago [\u8d70]\u3002invade [v. \u4fb5\u7565\uff0c\u540d\u8bcd\u5f62\u5f0finvasion] \u7684\u5b57\u9762\u4e49\u5c31\u662f\u201c\u8d70 [vad] \u5165 [in-] \u4ed6\u56fd\u9886\u571f\u201d\u3002\n(2) \u8bcd\u6839vag\u8868\u793awander\u3002\u53ef\u4ee5\u53c2\u8003wag [\u6447\u6446] \u4ee5\u53ca\u4e0a\u4e00\u6761\u8bcd\u6839vad/vas\u52a0\u6df1\u8bb0\u5fc6\u3002\n(3) \u8bcd\u6839ced\u548ccess\u9664\u4e86\u8868\u793ago [\u8d70] \u4e4b\u5916, \u5728\u5176\u6784\u6210\u7684\u5c11\u91cf\u5355\u8bcd\u4e2d\u8fd8\u8868\u793a\u201c\u8d70\u5f00\u201d\uff0c\u5373\u79bb\u5f00\uff0c\u5f15\u7533\u51fa\u505c\u6b62\u7684\u542b\u4e49\u3002',
+     'phon': u"[p\u0259r've\u026ad]",
+     'pos': u'6, 7',
+     'summary': u'\n\u8bcd\u6839vad\u8868\u793ago [\u8d70]\uff1ainvade [\u4fb5\u7565] \u662f\u6307\u201c (\u672a\u7ecf\u5141\u8bb8\u7684\u60c5\u51b5\u4e0b) \u8d70 [vad] \u8fdb [in-]\u201d\uff1bpervade\u6307\u201c\u8d70 [vad] \u904d [per-]\u201d, \u5f53\u6c14\u4f53\u6216\u6c1b\u56f4\u201c\u8d70\u904d\u201d\u7a7a\u95f4\u7684\u6bcf\u4e00\u4e2a\u89d2\u843d\uff0c\u5373\u5f25\u6f2b\uff0c\u5145\u6ee1\uff1bevasive\u5f62\u5bb9\u4e8b\u7269\u201c(\u4ece\u4eba\u4eec\u7684\u89c6\u7ebf\u3001\u638c\u5fc3\u4e2d) \u8d70 [vas] \u6389 [e-=ex-] \u7684 [-ive]\u201d, \u5373\u96be\u4ee5\u53d1\u73b0\u3001\u6355\u6349\u3001\u5206\u79bb\u7684\uff0c\u4e5f\u6307\u8bf4\u8bdd\u65f6\u201c\u56de\u907f [go [vas] away [e-]] \u7684 [-ive]\u201d, \u5373\u542b\u7cca\u5176\u8f9e\u7684\u3002vague\u5f62\u5bb9\u201c\u98d8\u5ffd\u4e0d\u5b9a [vag, wander] \u7684 [-ue]\u201d, \u5373\u542b\u4e49\u4e0a\u8868\u8fbe\u4e0d\u6e05\u7684\uff0c\u89c6\u89c9\u4e0a\u8f6e\u5ed3\u4e0d\u6e05\u6670\u7684\uff0c(\u53ef\u6982\u62ec\u6210\u201c\u6a21\u7cca\u7684\u201d); extravagant\u8868\u793a\u201c\u8fc7\u5ea6 [wander [vag] outside [extra-]] \u7684 [-ant] \u201d\uff0c\u4e5f\u7279\u6307\u201c\u82b1\u94b1\u8fc7\u5ea6\u7684\u201d, \u5373\u6325\u970d\u7684\u3002cessation [\u7ec8\u6b62\uff0c\u6682\u505c], \u6765\u81ea\u8bcd\u6839cess\u7531\u201c\u8d70\u5f00\u201d\u5f15\u7533\u51fa\u7684\u201c\u505c\u6b62\u201d; incessant\u8868\u793a\u201c\u4e0d [in-] \u505c\u6b62 [cess] \u7684 [-ant]\u201d, \u5373\u65e0\u95f4\u65ad\u7684\u3002\n',
+     'word': u'pervade'}
+     word
+       pervade
+     etyma_group_explanation
+       (1) 词根vad和vas表示go [走]。invade [v. 侵略，名词形式invasion] 的字面义就是“走 [vad] 入 [in-] 他国领土”。
+       (2) 词根vag表示wander。可以参考wag [摇摆] 以及上一条词根vad/vas加深记忆。
+       (3) 词根ced和cess除了表示go [走] 之外, 在其构成的少量单词中还表示“走开”，即离开，引申出停止的含义。
+     ety
+       vad, vag, ced
+     pos
+       6, 7
+     summary
+       词根vad表示go [走]：invade [侵略] 是指“ (未经允许的情况下) 走 [vad] 进 [in-]”；pervade指“走 [vad] 遍 [per-]”, 当气体或氛围“走遍”空间的每一个角落，即弥漫，充满；evasive形容事物“(从人们的视线、掌心中) 走 [vas] 掉 [e-=ex-] 的 [-ive]”, 即难以发现、捕捉、分离的，也指说话时“回避 [go [vas] away [e-]] 的 [-ive]”, 即含糊其辞的。vague形容“飘忽不定 [vag, wander] 的 [-ue]”, 即含义上表达不清的，视觉上轮廓不清晰的，(可概括成“模糊的”); extravagant表示“过度 [wander [vag] outside [extra-]] 的 [-ant] ”，也特指“花钱过度的”, 即挥霍的。cessation [终止，暂停], 来自词根cess由“走开”引申出的“停止”; incessant表示“不 [in-] 停止 [cess] 的 [-ant]”, 即无间断的。
+     content
+       [根] per- [through] + vad [go] + -e [v.], go through, 遍布 → vt. 弥漫，充满
+     etyma_cognates_l
+       pervade, evasive, extravagant, vague, cessation, incessant
+     phon
+       [pər'veɪd]
+    
 
 # 处理《GRE高分必备短语搭配》
 
@@ -2469,6 +2693,9 @@ print len(dy_base_unit_str_l), "units extracted"
 # print dy_base_unit_str_l[35]
 ```
 
+    36 units extracted
+    
+
 
 ```python
 %%sync_to_file $configDyBeforeMain
@@ -2500,6 +2727,10 @@ dy_index_d = extract_dy_index_content(dy_base_str)
 print len(dy_index_d), 'phrases in total'
 print dy_index_d['a barrage of']
 ```
+
+    365 phrases in total
+    大量的  
+    
 
 
 ```python
@@ -2540,6 +2771,23 @@ print len(dy_phrase_d)
 iter_print(dy_phrase_d['so far'])
 ```
 
+    365
+     exp_cn
+     pos
+       8
+     phrase_block_str
+       **1. 到目前为止**
+       **释** If you tell or ask someone what has happened **so far**, you are telling or asking them what has happened **up until the present point** in a situation or story, and often implying that something different might happen later.
+       **例** So far there has been no word from the missing aircraft that disappeared from the radar four hours ago.
+       **题** It is not particularly surprising that some earlier scholarship concerning such cultures has so far gone unchallenged.
+       关于这些文化的一些早期学说一直没有被人质疑，这并不是一件特别奇怪的事情。
+       **2. 有限地**
+       **释** If you say that something only goes **so far** or can only go so far, you mean that its extent, effect, or influence is **limited**.
+       **例** The church can only go so far in secular matters.
+       **题** In pollen dating, geologic happenings are dated in terms of each other, and one can get just so far by matching independent sequences; but in radiocarbon dating the scale of time is measured in absolute terms of centuries or years.
+       在孢粉定年法中，地质历史上的事件是通过彼此的顺序确定的，因此我们只能有限地匹配不同的独立序列；而放射性碳同位素断年技术则能精确到世纪甚至是日历年的时间尺度。
+    
+
 ## 依据index校订
 
 
@@ -2552,6 +2800,13 @@ for word in dy_phrase_d:
     if word not in dy_index_d:
         print word
 ```
+
+    under one's control
+    on one's own
+    ****
+    under one’s control
+    on one’s own
+    
 
 【勘误】上面两个单词，将中文的单引号替换为英文
 
@@ -2636,7 +2891,7 @@ with codecs.open('duanyu_base_d.txt', 'w', encoding='utf-8') as f:
 
 
 ```python
-%%writefile -a $duanyu_convert_script_name
+%%sync_to_file $configDy -p
 
 if __name__ == '__main__':
     main()
@@ -2648,7 +2903,29 @@ if __name__ == '__main__':
 iter_print(dy_phrase_processed_d['so far2'])
 ```
 
+     gre_example_cn
+       在孢粉定年法中，地质历史上的事件是通过彼此的顺序确定的，因此我们只能有限地匹配不同的独立序列；而放射性碳同位素断年技术则能精确到世纪甚至是日历年的时间尺度。
+     pos
+       8
+     gre_example_en
+       In pollen dating, geologic happenings are dated in terms of each other, and one can get just so far by matching independent sequences; but in radiocarbon dating the scale of time is measured in absolute terms of centuries or years.
+     en_exp
+       If you say that something only goes **so far** or can only go so far, you mean that its extent, effect, or influence is **limited**.
+     phrase
+       so far
+     usage_index
+       2
+     cn_exp
+       有限地
+     example
+       The church can only go so far in secular matters.
+    
+
 
 ```python
 ! jupyter nbconvert explore_all_in_one.ipynb --to markdown
 ```
+
+    [NbConvertApp] Converting notebook explore_all_in_one.ipynb to markdown
+    [NbConvertApp] Writing 75290 bytes to explore_all_in_one.md
+    
