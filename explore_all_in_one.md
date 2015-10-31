@@ -100,6 +100,7 @@ i: insert，把cell的内容添加到search scope的开头。
 a: append，把cell的内容添加到search scope的结尾。  
 di: different and insert，即cell作为整体不能在目标字符串中匹配后，再insert。否则维持原样。  
 da：differnt and append。类似di。
+o: overwrite。用cell中的内容覆盖整个search scope。
 
 * option "-t --test"，测试模式。  
 不写入cell。通常与-l使用。
@@ -1344,17 +1345,14 @@ _ = map(iter_print, iter_value_of_key_through_d_l_d_d(new3000_base_d, 'usages', 
     cn_f: u'\uff1a' cn_h: u'\uff1a'
     en_f: u'\uff1a' en_h: u':'
     Some examples of the raw string of the explanation field
-     *n.* 代理人，代表：a person authorized to act as **representative for another**
-     *adj.* 无力的，无能的：**lacking in power**, strength, or vigor
-     *adj.* 非常有害的，致命的：**extremely harmful**; devastating
-     *vt.* 拧，扭动：to pull, force, or move by violent **wringing or twisting movements**
-     *n.* 排列，阵列：a regular and imposing grouping or **arrangement**
-     *vt.* 阻碍（成长）：to **hinder** the normal **growth**, development, or progress of
-     *v.* 改变方向或者路线，绕道：to **change** one's course or **direction**
-     *n.* 令人羞愧的事物，耻辱：one that **causes shame**, rebuke or blame
-     ［'ægrɪgeɪt］ *v.* 集合，聚集：to **collect or gather** into a mass or whole
-     *n.*（地位、功能）对等的人或物：one having the **same function or characteristics** as another
-     *adj.* 精确的，准确的：**precise**, accurate
+     *n.* 座右铭：a short expression of a **guiding principle**
+     *vt.* 努力做，拼搏：to **devote serious and sustained effort**
+     *adj.* 淡定的，安静的：**free from** emotional or mental **agitation**
+     *adj.* 精疲力竭的：**drained of energy** or effectiveness
+     *vt.* 使统一化：to **make agree** with a **single established standard** or model
+     *n.* 忙碌之地：a place swarming with **activity**
+     *v.* 平息，抚慰：to **lessen the anger** or agitation of
+     *vt.* 赞扬：to mention with **approbation**: **praise**
     
 
 
@@ -1499,13 +1497,12 @@ _ = map(pprint, iter_through_and_sample_k(new3000_base_d, 5, [('all','',True), (
                                                               ('key', 'en', False)]))
 ```
 
-    [u'archaic', u'**no** longer **current** or applicable; **antiquated**']
-    [u'theatrical',
-     u'marked by **exaggerated** self-display and **unnatural** behavior']
-    [u'accidental', u'**not being a vital part** of or belonging to something']
-    [u'want',
-     u'the condition or quality of **lacking** something usual or necessary']
-    [u'retaliate', u'to **pay back**(as an injury)in kind']
+    [u'gregarious', u'tending to **group with others** of the same kind']
+    [u'sublime', u'of **high** spiritual, **moral**, or intellectual worth']
+    [u'trivial', u'of **little** worth or **importance**']
+    [u'foreword',
+     u'a **preface** or an introductory note, as for a book, especially by a person other than the author']
+    [u'overbearing', u'domineering in manner; **arrogant**']
     
 
 ## 处理例句
@@ -1533,13 +1530,16 @@ _ = map(functools.partial(iter_print, print_list_index=False),
 del path_to_example
 ```
 
-       perilous
-       例　perilous journey through hostile territory 穿过敌方领土的危险行程
-       coercion
-       churlish
-       prune
-       cherished
-       例　a cherished heirloom that has been in the family for generations 在这个家族里流传了几代的备受珍爱的传家宝‖He described the picture with his wife as his most cherished possession. 他把这张与妻子的合影看作自己最为珍爱的财富。
+       ethereal
+       例　a land of ethereal beauty and tranquility 具有缥缈的美感和宁静的一片土地
+       blunder
+       例　Without my glasses I blundered into the wrong room. 因为没戴眼镜，所以我蹒跚地走入了错误的房间。
+       palpitation
+       例　a palpitation of the blood vessels 血管有节奏的舒张收缩
+       arrhythmic
+       例　arrhythmic pulse 不规律的脉搏
+       castigate
+       例　a judge who believes in castigating criminals to the full extent of the law 认为应该最大程度地惩罚罪犯的法官
     
 
 ### 判断缺少分隔符的情形
@@ -2924,8 +2924,13 @@ iter_print(dy_phrase_processed_d['so far2'])
 
 ```python
 ! jupyter nbconvert explore_all_in_one.ipynb --to markdown
+! jupyter nbconvert AnkiImport.ipynb -- to html
 ```
 
     [NbConvertApp] Converting notebook explore_all_in_one.ipynb to markdown
-    [NbConvertApp] Writing 75290 bytes to explore_all_in_one.md
+    [NbConvertApp] Writing 99350 bytes to explore_all_in_one.md
+    [NbConvertApp] WARNING | pattern u'to' matched no files
+    [NbConvertApp] WARNING | pattern u'html' matched no files
+    [NbConvertApp] Converting notebook AnkiImport.ipynb to html
+    [NbConvertApp] Writing 209090 bytes to AnkiImport.html
     

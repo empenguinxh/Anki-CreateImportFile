@@ -314,11 +314,11 @@ if __name__ == '__main__':
 ```
 
     [NbConvertApp] Converting notebook anki_import.ipynb to markdown
-    [NbConvertApp] Writing 12057 bytes to anki_import.md
+    [NbConvertApp] Writing 12102 bytes to anki_import.md
     [NbConvertApp] WARNING | pattern u'to' matched no files
     [NbConvertApp] WARNING | pattern u'html' matched no files
     [NbConvertApp] Converting notebook anki_import.ipynb to html
-    [NbConvertApp] Writing 209091 bytes to anki_import.html
+    [NbConvertApp] Writing 209433 bytes to anki_import.html
     
 
 
