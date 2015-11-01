@@ -814,7 +814,7 @@ def modify_audio_pointer():
     path_to_usage_d = path_to_pron = [('all','',False), ('key','usages',False), ('all','',False)]
     for usage_d, in iter_through_general(new3000_base_d, path_to_usage_d):
         old_audio_name = usage_d['audio']
-        new_audio_name = os.path.splitext(os.path.basename(old_audio_name))[0] + '.mp3'
+        new_audio_name = os.path.splitext(os.path.basename(old_audio_name))[0] + '.mp3]'
         usage_d['audio'] = new_audio_name
 ```
 
@@ -943,7 +943,7 @@ if __name__ == '__main__':
     C:\Users\xiaohang\Anaconda\lib\site-packages\IPython\nbconvert.py:13: ShimWarning: The `IPython.nbconvert` package has been deprecated. You should import from ipython_nbconvert instead.
       "You should import from ipython_nbconvert instead.", ShimWarning)
     [NbConvertApp] Converting notebook anki_import.ipynb to markdown
-    [NbConvertApp] Writing 30272 bytes to anki_import.md
+    [NbConvertApp] Writing 31332 bytes to anki_import.md
     [NbConvertApp] WARNING | Collisions detected in jupyter_nbconvert_config.py and jupyter_nbconvert_config.json config files. jupyter_nbconvert_config.json has higher priority: {
       "Exporter": {
         "template_path": "['.', 'C:\\\\Users\\\\xiaohang\\\\AppData\\\\Roaming\\\\jupyter\\\\templates'] ignored, using [u'C:\\\\Users\\\\xiaohang\\\\AppData\\\\Roaming\\\\jupyter\\\\templates']"
@@ -954,5 +954,5 @@ if __name__ == '__main__':
     C:\Users\xiaohang\Anaconda\lib\site-packages\IPython\nbconvert.py:13: ShimWarning: The `IPython.nbconvert` package has been deprecated. You should import from ipython_nbconvert instead.
       "You should import from ipython_nbconvert instead.", ShimWarning)
     [NbConvertApp] Converting notebook anki_import.ipynb to html
-    [NbConvertApp] Writing 292715 bytes to anki_import.html
+    [NbConvertApp] Writing 294465 bytes to anki_import.html
     
