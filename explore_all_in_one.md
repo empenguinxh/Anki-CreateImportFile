@@ -65,7 +65,9 @@ notebook开头的辅助函数都被写入了my_helpers.py文件。自定义的ma
 
 # Sync to file
 
-## 设计
+写完了才发现，已经有人写过类似的插件了。参见[writeandexecute.py](https://github.com/ipython-contrib/IPython-extensions/blob/master/ipyext/writeandexecute.py)。不过功能各有所长吧，功夫也不算完全白费。
+
+## 重新设计轮子～
 
 jupyter notebook允许你交互式的编写程序，在代码之间插入markdown，用更好的排版呈现关于代码的解释。但解释本身不是目的，重点在于那些真正做事的代码。所以，往往希望在将所有cell顺序执行一遍后，某些代码被结合到一起，构成一个干净简洁的脚本。
 
@@ -1345,14 +1347,25 @@ _ = map(iter_print, iter_value_of_key_through_d_l_d_d(new3000_base_d, 'usages', 
     cn_f: u'\uff1a' cn_h: u'\uff1a'
     en_f: u'\uff1a' en_h: u':'
     Some examples of the raw string of the explanation field
-     *n.* 座右铭：a short expression of a **guiding principle**
-     *vt.* 努力做，拼搏：to **devote serious and sustained effort**
-     *adj.* 淡定的，安静的：**free from** emotional or mental **agitation**
-     *adj.* 精疲力竭的：**drained of energy** or effectiveness
-     *vt.* 使统一化：to **make agree** with a **single established standard** or model
-     *n.* 忙碌之地：a place swarming with **activity**
-     *v.* 平息，抚慰：to **lessen the anger** or agitation of
-     *vt.* 赞扬：to mention with **approbation**: **praise**
+     *adj.* 真正的，确实的：being in fact the thing named and **not false**, unreal, or imaginary
+     *adj.* 匆忙的：acting or done with excessive or **careless speed**
+     *vt.* 使沉溺于：to **give（oneself）over** to something especially unrestrainedly
+     *n.* 隐秘掩护所：a place where a person goes to hide or to **avoid others**
+     *n.* 复兴：a **restoration** to use, acceptance, activity, or vigor
+     *vt.* 对…有清晰想法，理解，解读：to have a **clear idea** of
+     *adj.* 多刺的：**full of thorns**
+     *n.* 牵强之词：微不足道的差别或不切中要点的异议，小反对：a **minor objection** or criticism
+     *vt.* 打碎，破坏：to cause to **separate into pieces** usually suddenly or forcibly
+     *adj.* 最初的，最早的：coming **before** all others in time or order
+     *adj.* 固执的，任性的：**sticking to** an opinion, purpose, or course of action in spite of reason, arguments, or persuasion
+     *adj.* 恶毒的，邪恶的：having or showing a **desire to cause someone pain** or suffering for the sheer enjoyment of it; disposed to do evil
+     *vt.* 支持：to fight for, defend, or **support** as a champion
+     *n.* 喧闹，暴乱：**public violence**, tumult, or disorder
+     *adj.* 不热心的，不真心的：**lacking in friendliness** or warmth of feeling
+     *adj.* 异常的，不同寻常的：**different from the ordinary** in a way that causes curiosity or suspicion
+     *n.* 不一致：a **lack of agreement** or harmony
+     *n.* 无权，虚弱：**lack of power** or effectiveness
+     *adj.* 酷热的：**intensely hot**
     
 
 
@@ -1497,12 +1510,13 @@ _ = map(pprint, iter_through_and_sample_k(new3000_base_d, 5, [('all','',True), (
                                                               ('key', 'en', False)]))
 ```
 
-    [u'gregarious', u'tending to **group with others** of the same kind']
-    [u'sublime', u'of **high** spiritual, **moral**, or intellectual worth']
-    [u'trivial', u'of **little** worth or **importance**']
+    [u'pithy', u'precisely meaningful; forceful and **brief**']
+    [u'respire', u'to **inhale** and **exhale air** successively']
+    [u'bonhomie', u'a pleasant and affable disposition; **geniality**']
+    [u'presumptuous',
+     u'having a **feeling of superiority** that shows itself in an overbearing attitude']
     [u'foreword',
      u'a **preface** or an introductory note, as for a book, especially by a person other than the author']
-    [u'overbearing', u'domineering in manner; **arrogant**']
     
 
 ## 处理例句
@@ -1530,16 +1544,15 @@ _ = map(functools.partial(iter_print, print_list_index=False),
 del path_to_example
 ```
 
-       ethereal
-       例　a land of ethereal beauty and tranquility 具有缥缈的美感和宁静的一片土地
-       blunder
-       例　Without my glasses I blundered into the wrong room. 因为没戴眼镜，所以我蹒跚地走入了错误的房间。
-       palpitation
-       例　a palpitation of the blood vessels 血管有节奏的舒张收缩
-       arrhythmic
-       例　arrhythmic pulse 不规律的脉搏
-       castigate
-       例　a judge who believes in castigating criminals to the full extent of the law 认为应该最大程度地惩罚罪犯的法官
+       gaffe
+       例　A gaffe is when a politician tells the truth. —— Michael Kinsley 所谓出丑，就是政治家说真话的时候。（迈克·金斯利）
+       disgruntle
+       interim
+       例　an interim government to maintain social stability 维持社会稳定的临时政府
+       chicanery
+       例　Well-doer never does chicanery and person who is good at chicanery does not belong well-doer. 善者不辩，辩者不善。‖He wasn't above using chicanery to win votes. 他不是用欺骗来赢得选票的。
+       pathological
+       例　She has a pathological fear of snakes. 她对蛇有一种病态的恐惧。
     
 
 ### 判断缺少分隔符的情形
@@ -2034,6 +2047,54 @@ def process_all_syns(words_d):
 %%sync_to_file $configNew3000AfterMain
 new3000_base_d = process_all_syns(new3000_base_d)
 ```
+
+## 补充发音
+
+原书中，如果一个释义的发音同上一个一样，则省略掉。这里我们将其补充回来。
+
+
+```python
+%%sync_to_file $configNew3000BeforeMain
+def supplement_word_ph_symbl(words_d):
+    path_to_phsymb = [('all','',True),('key','usages',False),('all','',True),('key','ph_symbl',False)]
+    for word, usage_index, ph_symbl in iter_through_general(words_d, path_to_phsymb):
+        usage_d = words_d[word]['usages'][usage_index]
+        if usage_d['ph_symbl'] == '':
+            cur_pspeech = usage_d['pspeech']
+            if usage_index == 0:
+                # uncommend print if you want to check
+                #print 'Word %s has no phonetic symbol, maybe it is a derivative.'%word
+                continue
+            pre_usage_d = words_d[word]['usages'][usage_index-1]
+            pre_pspeech = pre_usage_d['pspeech']
+            pre_phsymbl = pre_usage_d['ph_symbl']
+            if pre_pspeech != cur_pspeech:
+                if not cur_pspeech.startswith('v'):
+                    # already check the v. vi. vt. case
+                    print 'Previous pspeech is different. Please check! Word %s'%word
+                    iter_print(usage_d)
+                    continue
+            usage_d['ph_symbl'] = pre_phsymbl
+    return words_d
+```
+
+【勘误】 单词compendium释义2没有词性，是名字，补充上。
+
+
+```python
+%%sync_to_file $configNew3000AfterMain
+
+# revise compendium
+new3000_base_d['compendium']['usages'][1]['pspeech'] = 'n.'
+```
+
+
+```python
+%%sync_to_file $configNew3000AfterMain
+new3000_base_d = supplement_word_ph_symbl(new3000_base_d)
+```
+
+## 写入文件
 
 
 ```python
@@ -2923,14 +2984,13 @@ iter_print(dy_phrase_processed_d['so far2'])
 
 
 ```python
-! jupyter nbconvert explore_all_in_one.ipynb --to markdown
-! jupyter nbconvert AnkiImport.ipynb -- to html
+! jupyter nbconver explore_all_in_one.ipynb --to html
 ```
 
-    [NbConvertApp] Converting notebook explore_all_in_one.ipynb to markdown
-    [NbConvertApp] Writing 99350 bytes to explore_all_in_one.md
-    [NbConvertApp] WARNING | pattern u'to' matched no files
-    [NbConvertApp] WARNING | pattern u'html' matched no files
-    [NbConvertApp] Converting notebook AnkiImport.ipynb to html
-    [NbConvertApp] Writing 209090 bytes to AnkiImport.html
+    jupyter: 'nbconver' is not a Jupyter command
     
+
+
+```python
+
+```

@@ -1,7 +1,7 @@
 # coding:utf-8
 import json
 import codecs
-import os.path
+import os
 from my_helpers import *
 file_name_new3000 = 'new3000_base_d.txt'
 file_name_zhuji = 'zhuji_base_d.txt'
@@ -16,6 +16,14 @@ bzsdbdc_data = is_file_and_json_load(file_name_bzsdbdc)
 no_data_new3000 = new3000_base_d is None
 no_data_zhuji = zhuji3000_base_d is None
 no_data_bzsdbdc = bzsdbdc_data is None
+def add_field_audio_and_mynotes():
+    if no_data_new3000:
+        print 'New3000 data file does not exists! Nothing can be done...'
+        return
+    iter_path = [('all','',False), ('key','usages',False),('all','',False)]
+    for usage_d, in iter_through_general(new3000_base_d, iter_path):
+        usage_d['audio'] = ''
+        usage_d['mynotes'] = ''
 def convert_to_GreWord():
     if no_data_new3000:
         print 'New3000 data file does not exists! Nothing can be done...'
@@ -70,7 +78,7 @@ def convert_to_GreWord():
             usage_index = unicode(usage_index+1)
             word_uid = unicode(word) + usage_index
             ph_symbl = usage['ph_symbl']
-            word_Audio = ''
+            word_Audio = usage['audio']
             pspeech = usage['pspeech']
             exp_en = usage['exp_d']['en']
             exp_cn = usage['exp_d']['cn']
@@ -117,7 +125,7 @@ def convert_to_GreWord():
                     eytma_gr = zhuji3000_base_d[word]['ety']
                     eytma_gr_exp = zhuji3000_base_d[word]['etyma_group_explanation']
                     eytma_cognates = zhuji3000_base_d[word]['etyma_cognates_l']
-            mynotes = None_repr
+            mynotes = usage['mynotes']
             """
             Anki GreWord Structure
             word_uid  word  usage_index  ph_symbl  word_audio  pspeech  mynotes
@@ -140,10 +148,16 @@ def convert_to_GreWord():
                 one_line[index] = custom_html_element(_str)
             output_list.append(one_line)
     output_list.sort(key=lambda x: x[0])
-    
+    return output_list
+def main():
+    add_field_audio_and_mynotes()
+    output_list = convert_to_GreWord()
+    if output_list is None:
+        return
     with codecs.open(output_file_GreWord, 'w', encoding='utf-8') as f:
         for one_line in output_list:
             one_string = u'\t'.join(one_line) + '\n'
-            f.write(one_string)
+            f.write(one_string) 
+    del output_list
 if __name__ == '__main__':
-    convert_to_GreWord()
+    main()

@@ -385,6 +385,27 @@ def process_all_syns(words_d):
         usage_d = words_d[word]['usages'][usage_index]
         usage_d['syns'] = strip_first_two_chars_fun(syns_str)
     return words_d
+def supplement_word_ph_symbl(words_d):
+    path_to_phsymb = [('all','',True),('key','usages',False),('all','',True),('key','ph_symbl',False)]
+    for word, usage_index, ph_symbl in iter_through_general(words_d, path_to_phsymb):
+        usage_d = words_d[word]['usages'][usage_index]
+        if usage_d['ph_symbl'] == '':
+            cur_pspeech = usage_d['pspeech']
+            if usage_index == 0:
+                # uncommend print if you want to check
+                #print 'Word %s has no phonetic symbol, maybe it is a derivative.'%word
+                continue
+            pre_usage_d = words_d[word]['usages'][usage_index-1]
+            pre_pspeech = pre_usage_d['pspeech']
+            pre_phsymbl = pre_usage_d['ph_symbl']
+            if pre_pspeech != cur_pspeech:
+                if not cur_pspeech.startswith('v'):
+                    # already check the v. vi. vt. case
+                    print 'Previous pspeech is different. Please check! Word %s'%word
+                    iter_print(usage_d)
+                    continue
+            usage_d['ph_symbl'] = pre_phsymbl
+    return words_d
 def main(file_name=None):
     if file_name is None:
         file_name = file_new_3000
@@ -413,6 +434,9 @@ def main(file_name=None):
     new3000_base_d['enfranchise']['usages'][1]['ants'] = new3000_base_d['enfranchise']['usages'][1]['ants'].replace(u'subdue; enthrall', u'subdue, enthrall')
     new3000_base_d = process_all_ants(new3000_base_d)
     new3000_base_d = process_all_syns(new3000_base_d)
+    # revise compendium
+    new3000_base_d['compendium']['usages'][1]['pspeech'] = 'n.'
+    new3000_base_d = supplement_word_ph_symbl(new3000_base_d)
     with codecs.open('new3000_base_d.txt', 'w', encoding='utf-8') as f:
         json.dump(new3000_base_d, f)
 
