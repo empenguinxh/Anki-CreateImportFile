@@ -12,4 +12,11 @@ detailed explanation and walk through.
 `readmdict.py` `ripemd128.py` `pureSalsa20.py` are the tools to unzip mdd and mdx file
 see https://bitbucket.org/xwang/mdict-analysis/overview for more details.
 
-All commends in code are written in English.
+I share the ready to use import txt and the audio files on baiduyun. You can use the
+example_usage.apkg to build the notetype.
+
+http://pan.baidu.com/s/1pJ5W9uF 密码：xgif
+
+
+
+
