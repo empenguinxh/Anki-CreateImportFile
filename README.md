@@ -18,5 +18,3 @@ example_usage.apkg to build the notetype.
 http://pan.baidu.com/s/1pJ5W9uF 密码：xgif
 
 
-
-

@@ -63,7 +63,7 @@ def is_file_and_json_load(file_name_str):
 
 
 ```python
-%%sync_to_file $configCreAnkiImpGreWord $configCreAnkiImpGrePhrase -o
+%%sync_to_file $configCreAnkiImpGreWord $configCreAnkiImpGrePhrase -m o
 
 # coding:utf-8
 import json
@@ -71,8 +71,6 @@ import codecs
 import os
 from my_helpers import *
 ```
-
-    UsageError: unrecognized arguments: -o
 
 # GreWord
 
@@ -101,29 +99,6 @@ new3000_base_d = is_file_and_json_load(file_name_new3000)
 zhuji3000_base_d = is_file_and_json_load(file_name_zhuji)
 bzsdbdc_data = is_file_and_json_load(file_name_bzsdbdc)
 ```
-
-
-    ---------------------------------------------------------------------------
-
-    NameError                                 Traceback (most recent call last)
-
-    <ipython-input-7-0551b75f6f7d> in <module>()
-          6 zhuji3000_base_d = None
-          7 bzsdbdc_data = None
-    ----> 8 new3000_base_d = is_file_and_json_load(file_name_new3000)
-          9 zhuji3000_base_d = is_file_and_json_load(file_name_zhuji)
-         10 bzsdbdc_data = is_file_and_json_load(file_name_bzsdbdc)
-    
-
-    <ipython-input-4-7e0b22666a99> in is_file_and_json_load(file_name_str)
-          2     if os.path.isfile(file_name_str):
-          3         with codecs.open(file_name_str, 'r', encoding='utf-8') as f:
-    ----> 4             json_d = json.load(f)
-          5         return json_d
-    
-
-    NameError: global name 'json' is not defined
-
 
 
 ```python
@@ -328,6 +303,9 @@ Anki中，添加发音文件的语法是`[sound:发音文件指针]`。发音文
 print new3000_base_d['addict']['usages'][0].keys()
 ```
 
+    [u'exp_d', u'pspeech', u'ph_symbl', u'ants_d', u'der', u'ants', 'mynotes', u'examples', u'examples_d', u'exp', 'audio', u'syns']
+    
+
 
 ```python
 path_to_pron = [('all','',True), ('key','usages',False), ('all','',True),('key','ph_symbl',False)]
@@ -345,6 +323,9 @@ for word, usage_index, word_pron in iter_through_general(new3000_base_d, deepcop
 ```python
 print multi_pron_word_set
 ```
+
+    set([u'incarnate', u'articulate', u'appropriate', u'incense', u'subordinate', u'animate', u'surmise', u'content', u'duplicate', u'escort', u'moderate', u'compliment', u'entrance', u'intimate', u'addict', u'compound', u'aggregate', u'discharge', u'diffuse', u'convert', u'elaborate', u'exploit', u'contract', u'project', u'initiate', u'ally', u'alloy', u'intrigue'])
+    
 
 ## 来源：dsl格式字典
 
@@ -365,6 +346,14 @@ file_pronunciation = 'D:\Eudict\dsl\En-En_Longman_Pronunciation3\En-En-Longman_P
 dsl_str = gzip.open(file_pronunciation, mode='r').read().decode('utf-16')
 print dsl_str[100:400]
 ```
+
+    sh"
+    
+    A
+    	[m1][b]A, a[/b] [i] name of letter[/i] [p]BrE[/p] [s]uk_ld44a.wav[/s] [p]AmE[/p] [s]us_l3a-2.wav[/s] [c mediumblue]eɪ[/c][/m]
+    	[m1]▷ [b]A's, As, a's[/b] [c mediumblue]eɪz[/c][i] —Communications code name:[/i][c darkmagenta] Alfa[/c][/m]
+    	[m1]▶[b][c blue]ˌ[/c]A[c blue]ˈ[/c]1[c blue]◂[/c], [c 
+    
 
 
 ```python
@@ -430,6 +419,27 @@ for one_match_obj in extract_word_block_re.finditer(dsl_str):
 # example
 iter_print(dsl_pron_d['content'])
 ```
+
+     word_block
+       	{{Roman}}I{{/Roman}}
+       	[m1][b]con|tent[/b] [i] adjective, verb, noun 'contentment'[/i] [p]BrE[/p] [s]uk_ld44content.wav[/s] [p]AmE[/p] [s]us_l3content2.wav[/s] [c mediumblue]kən |ˈtent[/c] [p]§[/p]\ [sub]([/sub]ˌ[sub])[/sub]kɒn-[/m]
+       	[m1]▷ [b]con|tented[/b] [c mediumblue]ˈtent ɪd[/c] -əd [p]AmE[/p]\ [c mediumblue]ˈten[i]t̬[/i] əd[/c][/m]
+       	[m1]▷ [b]con|tenting[/b] [c mediumblue]ˈtent ɪŋ[/c] [p]AmE[/p]\ [c mediumblue]ˈten[i]t̬[/i] ɪŋ[/c][/m]
+       	[m1]▷ [b]con|tents[/b] [c mediumblue]ˈten[i]t[/i]s[/c][/m]
+       	{{Roman}}II{{/Roman}}
+       	[m1][b]content[/b] [i] noun 'matter contained'[/i] [p]BrE[/p] [s]uk_content2.wav[/s] [p]AmE[/p] [s]us_l3content.wav[/s] [c mediumblue]ˈkɒn tent[/c] [p]AmE[/p]\ [c mediumblue]ˈkɑːn-[/c][/m]
+       	[m1]▷ [b]content|s[/b] [c mediumblue]s[/c][/m]
+     ph_symbol_l
+       0
+         us_l3content2.wav
+       1
+         us_l3content.wav
+     pspeech_l
+       0
+         adjective, verb, noun 
+       1
+         noun 
+    
 
 ### 统计词性对应关系
 
@@ -530,6 +540,9 @@ with codecs.open('temp_check_pron_log.txt', 'w', encoding='utf-8') as f:
 print '%d words not found'%len(not_found_word_l)
 ```
 
+    153 words not found
+    
+
 虽然还有153个没找到，但注意到，多音词都在其中。
 
 ## 用韦氏发音库补充
@@ -566,6 +579,9 @@ with codecs.open(path_of_media_source + word_list_file, encoding='utf-8') as f:
 print media_path_dict['habit']
 ```
 
+    D:\mvoice\h\habit.mp3
+    
+
 
 ```python
 count = 0
@@ -579,6 +595,9 @@ for word in not_found_word_l:
         still_not_found_word_l.append(word)
 print 'found %d of %d'%(count, len(not_found_word_l))
 ```
+
+    found 57 of 153
+    
 
 ## 用mdict补充
 
@@ -601,6 +620,9 @@ for word, word_block in longman_mdx_iter:
 print 'In longman, found %d words of new3000 (%d in total)'%(len(longman_in_new3000_d), len(new3000_base_d))
 ```
 
+    In longman, found 2954 words of new3000 (3145 in total)
+    
+
 抽取音频地址
 
 
@@ -609,6 +631,9 @@ print 'In longman, found %d words of new3000 (%d in total)'%(len(longman_in_new3
 soup = BeautifulSoup(longman_in_new3000_d['abandon'],"lxml")
 print soup.find_all(href=re.compile('sound.*?US'))[0]['href'][8:]
 ```
+
+    US_abandon1.spx
+    
 
 
 ```python
@@ -631,11 +656,21 @@ for word in still_not_found_word_l:
 print 'found %d of %d'%(count, len(still_not_found_word_l))
 ```
 
+    found 52 of 96
+    
+
 
 ```python
 # example
 longman_found_word_d['ingratiating']
 ```
+
+
+
+
+    'US_ingratiating.spx'
+
+
 
 
 ```python
@@ -736,6 +771,64 @@ for index, usage_d in enumerate(new3000_base_d[word]['usages']):
     print usage_d['audio']
 ```
 
+    [sound:compendium_n.wav]
+    [sound:compendium_n.wav]
+    
+
+## 转换为mp3
+
+到这里，电脑上已经可以发音了。但手机只支持mp3格式，所以要将collection.media中的wav和spx转换为mp3。
+
+使用pydub+ffmpeg
+
+参考[Pydub ](https://github.com/jiaaro/pydub/)
+
+
+```python
+from pydub import AudioSegment
+import glob
+```
+
+
+```python
+def convert_to_mp3():
+    owd = os.getcwd()
+    os.chdir(anki_media_collection)
+    extension_list = ('*.wav', '*.spx')
+    for extension in extension_list:
+        for audio in glob.glob(extension):
+            mp3_filename = os.path.splitext(os.path.basename(audio))[0] + '.mp3'
+            if not os.path.isfile(mp3_filename):
+                AudioSegment.from_file(audio).export(mp3_filename, format='mp3')
+    os.chdir(owd)
+```
+
+
+```python
+convert_to_mp3()
+```
+
+
+```python
+def modify_audio_pointer():
+    path_to_usage_d = path_to_pron = [('all','',False), ('key','usages',False), ('all','',False)]
+    for usage_d, in iter_through_general(new3000_base_d, path_to_usage_d):
+        old_audio_name = usage_d['audio']
+        new_audio_name = os.path.splitext(os.path.basename(old_audio_name))[0] + '.mp3'
+        usage_d['audio'] = new_audio_name
+```
+
+
+```python
+modify_audio_pointer()
+```
+
+
+```python
+# test
+#iter_print(new3000_base_d['chaperone'])
+```
+
 ## 添加笔记
 
 
@@ -796,6 +889,17 @@ print 'The structure of duanyu_base_d'
 pprint(duanyu_base_d['under one\'s control1'])
 ```
 
+    The structure of duanyu_base_d
+    {u'cn_exp': u'\u5728\u2026\u2026\u7684\u63a7\u5236\u4e4b\u4e0b',
+     u'en_exp': u'If something is **under** your **control**, you have the **power to make** all the important **decisions** about the way that it is run.',
+     u'example': u'The current protest doesn\u2019t look likely to be brought under government\u2019s control any time soon.',
+     u'gre_example_cn': u'\u5f53\u5fb7\u514b\u8428\u65af\u5dde\u8fd8\u5904\u4e8e\u58a8\u897f\u54e5\u7684\u7ba1\u8f96\u4e2d\u65f6\uff0c\u5c3d\u7ba1\u58a8\u897f\u54e5\u653f\u5e9c\u6781\u529b\u529d\u963b\u6765\u81ea\u7f8e\u56fd\u7684\u79fb\u6c11\uff0c\u5fb7\u5dde\u7684\u4eba\u53e3\u8fd8\u662f\u7ffb\u4e86\u4e24\u756a\u3002',
+     u'gre_example_en': u'While Texas was under Mexican control, the population of Texas quadrupled, in spite of the fact that Mexico discouraged immigration from the United States.',
+     u'phrase': u"under one's control",
+     u'pos': 7,
+     u'usage_index': u'1'}
+    
+
 
 ```python
 %%sync_to_file $configCreAnkiImpGrePhrase
@@ -830,3 +934,25 @@ if __name__ == '__main__':
 ! jupyter nbconvert anki_import.ipynb --to markdown
 ! jupyter nbconvert anki_import.ipynb -- to html
 ```
+
+    [NbConvertApp] WARNING | Collisions detected in jupyter_nbconvert_config.py and jupyter_nbconvert_config.json config files. jupyter_nbconvert_config.json has higher priority: {
+      "Exporter": {
+        "template_path": "['.', 'C:\\\\Users\\\\xiaohang\\\\AppData\\\\Roaming\\\\jupyter\\\\templates'] ignored, using [u'C:\\\\Users\\\\xiaohang\\\\AppData\\\\Roaming\\\\jupyter\\\\templates']"
+      }
+    }
+    C:\Users\xiaohang\Anaconda\lib\site-packages\IPython\nbconvert.py:13: ShimWarning: The `IPython.nbconvert` package has been deprecated. You should import from ipython_nbconvert instead.
+      "You should import from ipython_nbconvert instead.", ShimWarning)
+    [NbConvertApp] Converting notebook anki_import.ipynb to markdown
+    [NbConvertApp] Writing 30272 bytes to anki_import.md
+    [NbConvertApp] WARNING | Collisions detected in jupyter_nbconvert_config.py and jupyter_nbconvert_config.json config files. jupyter_nbconvert_config.json has higher priority: {
+      "Exporter": {
+        "template_path": "['.', 'C:\\\\Users\\\\xiaohang\\\\AppData\\\\Roaming\\\\jupyter\\\\templates'] ignored, using [u'C:\\\\Users\\\\xiaohang\\\\AppData\\\\Roaming\\\\jupyter\\\\templates']"
+      }
+    }
+    [NbConvertApp] WARNING | pattern u'to' matched no files
+    [NbConvertApp] WARNING | pattern u'html' matched no files
+    C:\Users\xiaohang\Anaconda\lib\site-packages\IPython\nbconvert.py:13: ShimWarning: The `IPython.nbconvert` package has been deprecated. You should import from ipython_nbconvert instead.
+      "You should import from ipython_nbconvert instead.", ShimWarning)
+    [NbConvertApp] Converting notebook anki_import.ipynb to html
+    [NbConvertApp] Writing 292715 bytes to anki_import.html
+    
