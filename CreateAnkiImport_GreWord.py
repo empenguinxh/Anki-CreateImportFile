@@ -16,14 +16,16 @@ bzsdbdc_data = is_file_and_json_load(file_name_bzsdbdc)
 no_data_new3000 = new3000_base_d is None
 no_data_zhuji = zhuji3000_base_d is None
 no_data_bzsdbdc = bzsdbdc_data is None
-def add_field_audio_and_mynotes():
+def add_extra_fields():
     if no_data_new3000:
         print 'New3000 data file does not exists! Nothing can be done...'
         return
-    iter_path = [('all','',False), ('key','usages',False),('all','',False)]
-    for usage_d, in iter_through_general(new3000_base_d, iter_path):
+    iter_path = [('all','',True), ('key','usages',False),('all','',False)]
+    for word, usage_d in iter_through_general(new3000_base_d, iter_path):
         usage_d['audio'] = ''
         usage_d['mynotes'] = ''
+    for word_d in new3000_base_d.itervalues():
+        word_d['similar_form'] = ''
 def convert_to_GreWord():
     if no_data_new3000:
         print 'New3000 data file does not exists! Nothing can be done...'
@@ -125,7 +127,9 @@ def convert_to_GreWord():
                     eytma_gr = zhuji3000_base_d[word]['ety']
                     eytma_gr_exp = zhuji3000_base_d[word]['etyma_group_explanation']
                     eytma_cognates = zhuji3000_base_d[word]['etyma_cognates_l']
+            # extra fields
             mynotes = usage['mynotes']
+            similar_form = one_new3000_word_d['similar_form']
             """
             Anki GreWord Structure
             word_uid  word  usage_index  ph_symbl  word_audio  pspeech  mynotes
@@ -135,14 +139,14 @@ def convert_to_GreWord():
             syns der_new3000 
             how_to_mem_bzsdbdc how_to_mem_zhuji3000 
             etyma_group etyma_group_exp etyma_cognates
-            position tags
+            position similar_form tags
             """
             one_line = [word_uid, word, usage_index, ph_symbl, word_Audio, pspeech, mynotes, 
                         exp_en, exp_cn, exp_en_cn, exp_all, 
                         examples_en, examples_cn, examples_en_cn, examples_others,
                         ants_en, ants_cn, ants_en_cn] +\
                        [syns, der_new3000, how_to_mem_bzsdbdc, how_to_mem_zhuji3000,
-                        eytma_gr, eytma_gr_exp, eytma_cognates, word_pos, word_tags]
+                        eytma_gr, eytma_gr_exp, eytma_cognates, word_pos, similar_form, word_tags]
             for index, _str in enumerate(one_line):
                 _str = replace_with_br(collapse_blank_line(_str).strip(' \n'))
                 one_line[index] = custom_html_element(_str)

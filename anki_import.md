@@ -113,19 +113,21 @@ no_data_bzsdbdc = bzsdbdc_data is None
 
 ```python
 %%sync_to_file $configCreAnkiImpGreWord
-def add_field_audio_and_mynotes():
+def add_extra_fields():
     if no_data_new3000:
         print 'New3000 data file does not exists! Nothing can be done...'
         return
-    iter_path = [('all','',False), ('key','usages',False),('all','',False)]
-    for usage_d, in iter_through_general(new3000_base_d, iter_path):
+    iter_path = [('all','',True), ('key','usages',False),('all','',False)]
+    for word, usage_d in iter_through_general(new3000_base_d, iter_path):
         usage_d['audio'] = ''
         usage_d['mynotes'] = ''
+    for word_d in new3000_base_d.itervalues():
+        word_d['similar_form'] = ''
 ```
 
 
 ```python
-add_field_audio_and_mynotes()
+add_extra_fields()
 ```
 
 
@@ -238,7 +240,9 @@ def convert_to_GreWord():
                     eytma_gr = zhuji3000_base_d[word]['ety']
                     eytma_gr_exp = zhuji3000_base_d[word]['etyma_group_explanation']
                     eytma_cognates = zhuji3000_base_d[word]['etyma_cognates_l']
+            # extra fields
             mynotes = usage['mynotes']
+            similar_form = one_new3000_word_d['similar_form']
             """
             Anki GreWord Structure
             word_uid  word  usage_index  ph_symbl  word_audio  pspeech  mynotes
@@ -248,14 +252,14 @@ def convert_to_GreWord():
             syns der_new3000 
             how_to_mem_bzsdbdc how_to_mem_zhuji3000 
             etyma_group etyma_group_exp etyma_cognates
-            position tags
+            position similar_form tags
             """
             one_line = [word_uid, word, usage_index, ph_symbl, word_Audio, pspeech, mynotes, 
                         exp_en, exp_cn, exp_en_cn, exp_all, 
                         examples_en, examples_cn, examples_en_cn, examples_others,
                         ants_en, ants_cn, ants_en_cn] +\
                        [syns, der_new3000, how_to_mem_bzsdbdc, how_to_mem_zhuji3000,
-                        eytma_gr, eytma_gr_exp, eytma_cognates, word_pos, word_tags]
+                        eytma_gr, eytma_gr_exp, eytma_cognates, word_pos, similar_form, word_tags]
             for index, _str in enumerate(one_line):
                 _str = replace_with_br(collapse_blank_line(_str).strip(' \n'))
                 one_line[index] = custom_html_element(_str)
@@ -771,8 +775,8 @@ for index, usage_d in enumerate(new3000_base_d[word]['usages']):
     print usage_d['audio']
 ```
 
-    [sound:compendium_n.wav]
-    [sound:compendium_n.wav]
+    [sound:compendium_n.mp3]
+    [sound:compendium_n.mp3]
     
 
 ## 转换为mp3
@@ -814,8 +818,9 @@ def modify_audio_pointer():
     path_to_usage_d = path_to_pron = [('all','',False), ('key','usages',False), ('all','',False)]
     for usage_d, in iter_through_general(new3000_base_d, path_to_usage_d):
         old_audio_name = usage_d['audio']
-        new_audio_name = os.path.splitext(os.path.basename(old_audio_name))[0] + '.mp3]'
-        usage_d['audio'] = new_audio_name
+        if old_audio_name != '':
+            new_audio_name = os.path.splitext(os.path.basename(old_audio_name))[0] + '.mp3]'
+            usage_d['audio'] = new_audio_name
 ```
 
 
@@ -854,6 +859,34 @@ def add_mynotes():
 
 ```python
 add_mynotes()
+```
+
+## 添加形近词
+
+第一遍背诵时，由于不会精确的记忆词形，经常出现各种误识别。所以加入一个环节，根据[Wagner–Fischer算法](https://en.wikipedia.org/wiki/Wagner%E2%80%93Fischer_algorithm)自动生成形近词，并将形近词的简单中文释义添加到其后。计算单词的Levenshtein distance时，使用的别人写好的[算法](https://gist.github.com/kylebgorman/8034009)，并没做优化，所以可能慢一些。另外，也没有缓存距离，即计算完A、B间的距离后，B、A间还会再计算一次。
+
+由于ipython执行multiprocess有bug，[multiprocessing](https://docs.python.org/2/library/multiprocessing.html)提到：
+    
+    This means that some examples, such as the Pool examples will not work in the interactive interpreter. 
+        
+所以，具体程序参见脚本`add_similar_word.py`。该脚本生成`similar_word.txt`，里面有需要的数据。
+
+
+```python
+with open('similar_word.txt') as f:
+    similar_word_l = json.load(f)
+```
+
+
+```python
+similar_word_d = {pair[0]:pair[1] for pair in similar_word_l}
+```
+
+
+```python
+def add_similar_word_to_new3000_base_d():
+    for word in similar_word_d:
+        new3000_base_d[word]['similar_form'] = similar_word_d[word]
 ```
 
 ## 生成文件
@@ -931,6 +964,11 @@ if __name__ == '__main__':
 
 
 ```python
+
+```
+
+
+```python
 ! jupyter nbconvert anki_import.ipynb --to markdown
 ! jupyter nbconvert anki_import.ipynb -- to html
 ```
@@ -943,7 +981,7 @@ if __name__ == '__main__':
     C:\Users\xiaohang\Anaconda\lib\site-packages\IPython\nbconvert.py:13: ShimWarning: The `IPython.nbconvert` package has been deprecated. You should import from ipython_nbconvert instead.
       "You should import from ipython_nbconvert instead.", ShimWarning)
     [NbConvertApp] Converting notebook anki_import.ipynb to markdown
-    [NbConvertApp] Writing 31332 bytes to anki_import.md
+    [NbConvertApp] Writing 30598 bytes to anki_import.md
     [NbConvertApp] WARNING | Collisions detected in jupyter_nbconvert_config.py and jupyter_nbconvert_config.json config files. jupyter_nbconvert_config.json has higher priority: {
       "Exporter": {
         "template_path": "['.', 'C:\\\\Users\\\\xiaohang\\\\AppData\\\\Roaming\\\\jupyter\\\\templates'] ignored, using [u'C:\\\\Users\\\\xiaohang\\\\AppData\\\\Roaming\\\\jupyter\\\\templates']"
@@ -954,5 +992,5 @@ if __name__ == '__main__':
     C:\Users\xiaohang\Anaconda\lib\site-packages\IPython\nbconvert.py:13: ShimWarning: The `IPython.nbconvert` package has been deprecated. You should import from ipython_nbconvert instead.
       "You should import from ipython_nbconvert instead.", ShimWarning)
     [NbConvertApp] Converting notebook anki_import.ipynb to html
-    [NbConvertApp] Writing 294465 bytes to anki_import.html
+    [NbConvertApp] Writing 298264 bytes to anki_import.html
     
